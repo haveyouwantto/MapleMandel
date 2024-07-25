@@ -119,6 +119,7 @@ public class Mandelbrot {
                     Color color = (iter == maxIter) ? Color.BLACK : getColor(iter);
                     finalG.setColor(color);
                     finalG.fillRect(finalX, y, 2, 2);
+                    stats.drawn.incrementAndGet();
 //                    image.setRGB(finalX, y, color.getRGB());
                 }
             }));
@@ -148,6 +149,7 @@ public class Mandelbrot {
                             finalG.setColor(color);
                             finalG.fillRect(x, finalY, 1, 2);
                             stats.guessed.incrementAndGet();
+                            stats.drawn.incrementAndGet();
                             continue;
                         }
                     }
@@ -158,6 +160,7 @@ public class Mandelbrot {
                     Color color = (iter == maxIter) ? Color.BLACK : getColor(iter);
                     finalG.setColor(color);
                     finalG.fillRect(x, finalY, 1, 2);
+                    stats.drawn.incrementAndGet();
                 }
             }));
         }
@@ -184,6 +187,7 @@ public class Mandelbrot {
                             Color color = (top == maxIter) ? Color.BLACK : getColor(top);
                             image.setRGB(x, finalY, color.getRGB());
                             stats.guessed.incrementAndGet();
+                            stats.drawn.incrementAndGet();
                             continue;
                         }
                     }
@@ -193,6 +197,7 @@ public class Mandelbrot {
                     iterations[x][finalY] = iter;
                     Color color = (iter == maxIter) ? Color.BLACK : getColor(iter);
                     image.setRGB(x, finalY, color.getRGB());
+                    stats.drawn.incrementAndGet();
                 }
             }));
         }
@@ -251,10 +256,14 @@ public class Mandelbrot {
     static class MandelbrotStats {
         protected final int totalPixels;
         protected final AtomicInteger guessed;
+        protected final AtomicInteger refIter;
+        protected final AtomicInteger drawn;
 
         MandelbrotStats(int totalPixels) {
             this.totalPixels = totalPixels;
+            this.refIter = new AtomicInteger();
             this.guessed = new AtomicInteger();
+            drawn = new AtomicInteger();
         }
 
         public int getTotalPixels() {
@@ -266,13 +275,15 @@ public class Mandelbrot {
         }
 
         protected void reset() {
+            refIter.set(0);
             guessed.set(0);
+            drawn.set(0);
         }
     }
 
     private static final BigDecimal ESCAPE_RADIUS = new BigDecimal(10000);
 
-    public List<Complex> getReference(DeepComplex start) {
+    public List<Complex> getReference(DeepComplex c) {
         List<Complex> referencePoints = new ArrayList<>();
         int precision = (int) (-Math.log10(scale) + 10);
         DeepComplex z = new DeepComplex(0, 0).setPrecision(precision);
@@ -281,8 +292,10 @@ public class Mandelbrot {
             if (z.abs().compareTo(ESCAPE_RADIUS) > 0) {
                 break;
             }
+
             referencePoints.add(z.toComplex());
-            z = z.mul(z).add(start);
+            z = z.mul(z).add(c);
+            stats.refIter.incrementAndGet();
         }
         return referencePoints;
     }

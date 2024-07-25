@@ -82,4 +82,8 @@ public class DeepComplex {
                 ", mc=" + mc +
                 '}';
     }
+
+    public MathContext getMc() {
+        return mc;
+    }
 }

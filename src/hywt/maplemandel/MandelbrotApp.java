@@ -12,6 +12,9 @@ import java.math.BigDecimal;
 import java.util.concurrent.Callable;
 
 public class MandelbrotApp extends JFrame {
+    private final DrawingPanel panel;
+    private final JLabel label;
+
     public MandelbrotApp() throws Exception {
         // 创建一个JFrame窗口
         super("Mandelbrot Tester");
@@ -20,7 +23,7 @@ public class MandelbrotApp extends JFrame {
         setLocationRelativeTo(null);
 
         // 创建并添加一个绘图面板
-        DrawingPanel panel = new DrawingPanel();
+        panel = new DrawingPanel();
         add(panel);
 
         // 显示窗口
@@ -52,15 +55,11 @@ public class MandelbrotApp extends JFrame {
             }
         });
 
-        JLabel label = new JLabel("i");
+        label = new JLabel("i");
 
         panel.setOnComplete(() -> {
             Mandelbrot mandelbrot = panel.getMandelbrot();
-            Mandelbrot.MandelbrotStats stats = mandelbrot.getStats();
-
-            double guessed = (double) stats.guessed.get() / stats.totalPixels;
-
-            label.setText(String.format("Zoom: %.2e It: %d Guessed: %.0f%%", 4 / mandelbrot.getScale(), mandelbrot.getMaxIter(), guessed*100));
+            update(mandelbrot);
             return null;
         });
         panel.update();
@@ -119,11 +118,8 @@ public class MandelbrotApp extends JFrame {
             try {
                 Mandelbrot mandelbrot = panel.getMandelbrot();
                 while (true) {
-                    if (mandelbrot.isDrawing()){
-                        panel.repaint();
-                        Mandelbrot.MandelbrotStats stats = mandelbrot.getStats();
-                        double guessed = (double) stats.guessed.get() / stats.totalPixels;
-                        label.setText(String.format("Zoom: %.2e It: %d Guessed: %.0f%%", 4 / mandelbrot.getScale(), mandelbrot.getMaxIter(), guessed * 100));
+                    if (mandelbrot.isDrawing()) {
+                        update(mandelbrot);
                     }
                     Thread.sleep(20);
                 }
@@ -132,6 +128,15 @@ public class MandelbrotApp extends JFrame {
             }
         });
         drawThread.start();
+    }
+
+    private void update(Mandelbrot mandelbrot) {
+        panel.repaint();
+        Mandelbrot.MandelbrotStats stats = mandelbrot.getStats();
+        double guessed = (double) stats.guessed.get() / stats.totalPixels;
+        double ref = (double) stats.refIter.get() / mandelbrot.getMaxIter();
+        double percent = (double) stats.drawn.get() / stats.totalPixels;
+        label.setText(String.format("%.1f%%  Ref: %.1f%%  Zoom: %.2e  It: %d  Guessed: %.0f%%", percent * 100, ref * 100, 4 / mandelbrot.getScale(), mandelbrot.getMaxIter(), guessed * 100));
     }
 }
 
@@ -196,7 +201,7 @@ class DrawingPanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
-        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
         // 绘制BufferedImage
         if (image != null) {
             Rectangle bounds = getImageBounds();
@@ -209,7 +214,7 @@ class DrawingPanel extends JPanel {
     }
 
     public void update() throws Exception {
-        new Thread(()->{
+        new Thread(() -> {
             try {
                 mandelbrot.draw(image);
                 repaint();
