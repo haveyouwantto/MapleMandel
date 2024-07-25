@@ -2,6 +2,13 @@ package hywt.maplemandel;
 import java.awt.Graphics;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class Mandelbrot {
 
@@ -13,6 +20,9 @@ public class Mandelbrot {
 
     private MandelbrotStats stats;
 
+    // 创建线程池
+    ExecutorService executor;
+
     public Mandelbrot() {
         this.center = new Complex(0, 0);
         this.scale = 4;
@@ -21,6 +31,9 @@ public class Mandelbrot {
         this.image = new BufferedImage(500, 500, BufferedImage.TYPE_INT_RGB);
         this.stats = new MandelbrotStats();
         stats.totalPixels = image.getWidth()*image.getHeight();
+
+        int numThreads = Runtime.getRuntime().availableProcessors();
+        executor = Executors.newFixedThreadPool(numThreads);
     }
 
     public Complex getDelta(int x, int y) {
@@ -61,61 +74,96 @@ public class Mandelbrot {
         int width = image.getWidth();
         int height = image.getHeight();
 
+        List<Future<?>> futures = new ArrayList<>();
+
         // 先进行间隔计算
         for (int x = 0; x < width; x += 2) {
-            for (int y = 0; y < height; y += 2) {
-                Complex c = center.add(getDelta(x, y));
-                int iter = getIter(c.getRe(), c.getIm());
-                iterations[x][y] = iter;
+            int finalX = x;
+            futures.add(executor.submit(()->{
+                for (int y = 0; y < height; y += 2) {
+                    Complex c = center.add(getDelta(finalX, y));
+                    int iter = getIter(c.getRe(), c.getIm());
+                    iterations[finalX][y] = iter;
 
-                Color color = (iter == maxIter) ? Color.BLACK : getColor(iter);
-                image.setRGB(x, y, color.getRGB());
+                    Color color = (iter == maxIter) ? Color.BLACK : getColor(iter);
+                    image.setRGB(finalX, y, color.getRGB());
+                }
+            }));
+        }
+
+        for (Future<?> future : futures) {
+            try {
+                future.get();
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
             }
         }
 
         // 使用智能猜测填充左右像素
         for (int y = 0; y < height; y += 2) {
+            int finalY = y;
+            futures.add(executor.submit(()->{
             for (int x = 1; x < width; x += 2) {
-                if (y < height - 1 && x < width - 1) {
-                    int left = iterations[x - 1][y];
-                    int right = iterations[x + 1][y];
+                if (finalY < height - 1 && x < width - 1) {
+                    int left = iterations[x - 1][finalY];
+                    int right = iterations[x + 1][finalY];
                     if (left == right) {
-                        iterations[x][y] = left;
+                        iterations[x][finalY] = left;
                         Color color = (left == maxIter) ? Color.BLACK : getColor(left);
-                        image.setRGB(x, y, color.getRGB());
+                        image.setRGB(x, finalY, color.getRGB());
                         stats.guessed++;
                         continue;
                     }
                 }
                 // 进行详细计算
-                Complex c = center.add(getDelta(x, y));
+                Complex c = center.add(getDelta(x, finalY));
                 int iter = getIter(c.getRe(), c.getIm());
-                iterations[x][y] = iter;
+                iterations[x][finalY] = iter;
                 Color color = (iter == maxIter) ? Color.BLACK : getColor(iter);
-                image.setRGB(x, y, color.getRGB());
+                image.setRGB(x, finalY, color.getRGB());
+            }
+            }));
+        }
+
+        for (Future<?> future : futures) {
+            try {
+                future.get();
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
             }
         }
 
         // 使用智能猜测填充上下像素
         for (int y = 1; y < height; y += 2) {
+            int finalY = y;
+            futures.add(executor.submit(()->{
             for (int x = 0; x < width; x++) {
-                if (x < width - 1 && y < height - 1) {
-                    int top = iterations[x][y - 1];
-                    int bottom = iterations[x][y + 1];
+                if (x < width - 1 && finalY < height - 1) {
+                    int top = iterations[x][finalY - 1];
+                    int bottom = iterations[x][finalY + 1];
                     if (top == bottom) {
-                        iterations[x][y] = top;
+                        iterations[x][finalY] = top;
                         Color color = (top == maxIter) ? Color.BLACK : getColor(top);
-                        image.setRGB(x, y, color.getRGB());
+                        image.setRGB(x, finalY, color.getRGB());
                         stats.guessed++;
                         continue;
                     }
                 }
                 // 进行详细计算
-                Complex c = center.add(getDelta(x, y));
+                Complex c = center.add(getDelta(x, finalY));
                 int iter = getIter(c.getRe(), c.getIm());
-                iterations[x][y] = iter;
+                iterations[x][finalY] = iter;
                 Color color = (iter == maxIter) ? Color.BLACK : getColor(iter);
-                image.setRGB(x, y, color.getRGB());
+                image.setRGB(x, finalY, color.getRGB());
+            }
+            }));
+        }
+
+        for (Future<?> future : futures) {
+            try {
+                future.get();
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
             }
         }
 
