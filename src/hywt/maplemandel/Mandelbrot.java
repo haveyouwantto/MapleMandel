@@ -26,6 +26,8 @@ public class Mandelbrot {
     // 创建线程池
     ExecutorService executor;
     private List<Future<?>> futures;
+    private List<Complex> reference;
+    private boolean calcRef;
 
     public Mandelbrot(int width, int height) {
         this.center = new DeepComplex(BigDecimal.ZERO, BigDecimal.ZERO);
@@ -41,6 +43,7 @@ public class Mandelbrot {
         executor = Executors.newFixedThreadPool(numThreads);
         drawing = false;
         futures = Collections.synchronizedList(new ArrayList<>());
+        calcRef = true;
     }
 
     public Complex getDelta(int x, int y) {
@@ -53,17 +56,30 @@ public class Mandelbrot {
         Complex delta = getDelta(x, y);
         center = center.add(delta);
         setScale(scale / 4);
+        calcRef = true;
     }
 
     public void zoomOut(int x, int y) {
         Complex delta = getDelta(x, y);
         center = center.add(delta);
         setScale(scale * 4);
+        calcRef = true;
+    }
+
+    public void zoomIn() {
+        setScale(scale /2);
+        calcRef = true;
+    }
+
+    public void zoomOut() {
+        setScale(scale * 2);
+        calcRef = false;
     }
 
     public void gotoLocation(DeepComplex c, double scale) {
         this.center = c;
         setScale(scale);
+        calcRef = true;
     }
 
     public DeepComplex getCenter() {
@@ -107,7 +123,7 @@ public class Mandelbrot {
         Graphics g = image.getGraphics();
         g.clearRect(0, 0, width, height);
 
-        List<Complex> ref = getReference(center);
+        if (calcRef) reference = getReference(center);
 
         // 先进行间隔计算
         for (int x = 0; x < width; x += 2) {
@@ -116,10 +132,10 @@ public class Mandelbrot {
                 Graphics finalG = image.getGraphics();
                 for (int y = 0; y < height; y += 2) {
                     Complex c = getDelta(finalX, y);
-                    int iter = getPTIter(c, ref);
+                    int iter = getPTIter(c, reference);
                     iterations[finalX][y] = iter;
 
-                    Color color = (iter == maxIter) ? Color.BLACK : getColor(iter);
+                    Color color = (iter == maxIter) ? Color.BLACK : Palette.getColor(iter);
                     finalG.setColor(color);
                     finalG.fillRect(finalX, y, 2, 2);
                     stats.drawn.incrementAndGet();
@@ -150,7 +166,7 @@ public class Mandelbrot {
                         int right = iterations[x + 1][finalY];
                         if (left == right) {
                             iterations[x][finalY] = left;
-                            Color color = (left == maxIter) ? Color.BLACK : getColor(left);
+                            Color color = (left == maxIter) ? Color.BLACK : Palette.getColor(left);
                             finalG.setColor(color);
                             finalG.fillRect(x, finalY, 1, 2);
                             stats.guessed.incrementAndGet();
@@ -160,9 +176,9 @@ public class Mandelbrot {
                     }
                     // 进行详细计算
                     Complex c = getDelta(x, finalY);
-                    int iter = getPTIter(c, ref);
+                    int iter = getPTIter(c, reference);
                     iterations[x][finalY] = iter;
-                    Color color = (iter == maxIter) ? Color.BLACK : getColor(iter);
+                    Color color = (iter == maxIter) ? Color.BLACK : Palette.getColor(iter);
                     finalG.setColor(color);
                     finalG.fillRect(x, finalY, 1, 2);
                     stats.drawn.incrementAndGet();
@@ -191,7 +207,7 @@ public class Mandelbrot {
                         int bottom = iterations[x][finalY + 1];
                         if (top == bottom) {
                             iterations[x][finalY] = top;
-                            Color color = (top == maxIter) ? Color.BLACK : getColor(top);
+                            Color color = (top == maxIter) ? Color.BLACK : Palette.getColor(top);
                             image.setRGB(x, finalY, color.getRGB());
                             stats.guessed.incrementAndGet();
                             stats.drawn.incrementAndGet();
@@ -200,9 +216,9 @@ public class Mandelbrot {
                     }
                     // 进行详细计算
                     Complex c = getDelta(x, finalY);
-                    int iter = getPTIter(c, ref);
+                    int iter = getPTIter(c, reference);
                     iterations[x][finalY] = iter;
-                    Color color = (iter == maxIter) ? Color.BLACK : getColor(iter);
+                    Color color = (iter == maxIter) ? Color.BLACK : Palette.getColor(iter);
                     image.setRGB(x, finalY, color.getRGB());
                     stats.drawn.incrementAndGet();
                 }
@@ -219,6 +235,7 @@ public class Mandelbrot {
         }
 
         drawing = false;
+        calcRef = false;
     }
 
 

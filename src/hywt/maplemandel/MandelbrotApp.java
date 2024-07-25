@@ -105,11 +105,34 @@ public class MandelbrotApp extends JFrame {
             }
         });
 
+        JButton storeSeqBtn = new JButton("保存图像序列");
+        storeSeqBtn.addActionListener(e -> {
+            try {
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setDialogTitle("保存图像");
+                fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+
+                int userSelection = fileChooser.showSaveDialog(null);
+                if (userSelection == JFileChooser.APPROVE_OPTION) {
+                    try {
+                        File fileToSave = fileChooser.getSelectedFile();
+                        storeImageSeq(fileToSave);
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
+                        JOptionPane.showMessageDialog(null, "保存图像时出错！");
+                    }
+                }
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+
 
         toolBar.add(saveButton);
         toolBar.add(resetButton);
         toolBar.add(increaseIterationsButton);
         toolBar.add(locationButton);
+        toolBar.add(storeSeqBtn);
         getContentPane().add(toolBar, BorderLayout.NORTH);
         getContentPane().add(label, BorderLayout.SOUTH);
 
@@ -138,12 +161,32 @@ public class MandelbrotApp extends JFrame {
         double percent = (double) stats.drawn.get() / stats.totalPixels;
         label.setText(String.format("%.1f%%  Ref: %.1f%%  Zoom: %.2e  It: %d  Guessed: %.0f%%", percent * 100, ref * 100, 4 / mandelbrot.getScale(), mandelbrot.getMaxIter(), guessed * 100));
     }
+
+    public void storeImageSeq(File dir) throws Exception {
+        panel.getMandelbrot().zoomIn();
+        storeImageSeq(dir, 0);
+    }
+
+    private void storeImageSeq(File dir, int ord) throws Exception {
+        Mandelbrot mandelbrot = panel.getMandelbrot();
+        mandelbrot.zoomOut();
+        panel.setOnComplete(() -> {
+            BufferedImage img = panel.getImage();
+            ImageIO.write(img, "png", new File(dir, String.format("%05d_%.5g.png", ord, 4 / mandelbrot.getScale())));
+            if (mandelbrot.getScale() < 10) {
+                storeImageSeq(dir, ord + 1);
+            }
+            return null;
+        });
+        panel.update();
+    }
 }
 
 class DrawingPanel extends JPanel {
     private BufferedImage image;
     private Mandelbrot mandelbrot;
     private Callable<Void> onComplete;
+    private boolean enabled;
 
     public DrawingPanel() throws Exception {
         int width = 1000;
@@ -152,25 +195,28 @@ class DrawingPanel extends JPanel {
         // 创建一个BufferedImage
         image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         mandelbrot = new Mandelbrot(width, height);
+        enabled = true;
 
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                Rectangle bounds = getImageBounds();
+                if (enabled) {
+                    Rectangle bounds = getImageBounds();
 
-                // 转换点击坐标到原始画布坐标
-                int originalX = (int) ((e.getX() - bounds.x) / (double) bounds.width * image.getWidth());
-                int originalY = (int) ((e.getY() - bounds.y) / (double) bounds.height * image.getHeight());
+                    // 转换点击坐标到原始画布坐标
+                    int originalX = (int) ((e.getX() - bounds.x) / (double) bounds.width * image.getWidth());
+                    int originalY = (int) ((e.getY() - bounds.y) / (double) bounds.height * image.getHeight());
 
-                if (SwingUtilities.isLeftMouseButton(e)) {
-                    mandelbrot.zoomIn(originalX, originalY);
-                } else if (SwingUtilities.isRightMouseButton(e)) {
-                    mandelbrot.zoomOut(originalX, originalY);
-                }
-                try {
-                    update();
-                } catch (Exception ex) {
-                    throw new RuntimeException(ex);
+                    if (SwingUtilities.isLeftMouseButton(e)) {
+                        mandelbrot.zoomIn(originalX, originalY);
+                    } else if (SwingUtilities.isRightMouseButton(e)) {
+                        mandelbrot.zoomOut(originalX, originalY);
+                    }
+                    try {
+                        update();
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
                 }
             }
         });
@@ -232,5 +278,15 @@ class DrawingPanel extends JPanel {
 
     public void setOnComplete(Callable<Void> callable) {
         onComplete = callable;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    @Override
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 }
