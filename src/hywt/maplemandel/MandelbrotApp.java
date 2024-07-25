@@ -66,7 +66,7 @@ public class MandelbrotApp extends JFrame{
         JButton resetButton = new JButton("重置");
         resetButton.addActionListener(e -> {
             try {
-                panel.getMandelbrot().gotoLocation(new Complex(0, 0), 4);
+                panel.getMandelbrot().gotoLocation(new DeepComplex(0, 0), 4);
                 panel.update();
                 panel.repaint();
             } catch (Exception ex) {
@@ -113,11 +113,10 @@ class DrawingPanel extends JPanel {
                 int originalX = (int) ((e.getX() - bounds.x) / (double) bounds.width * image.getWidth());
                 int originalY = (int) ((e.getY() - bounds.y) / (double) bounds.height * image.getHeight());
 
-                Complex newCenter = mandelbrot.getDelta(originalX, originalY).add(mandelbrot.getCenter());
                 if (SwingUtilities.isLeftMouseButton(e)) {
-                    mandelbrot.gotoLocation(newCenter, mandelbrot.getScale() / 4);
+                    mandelbrot.zoomIn(originalX,originalY);
                 } else if (SwingUtilities.isRightMouseButton(e)) {
-                    mandelbrot.gotoLocation(newCenter, mandelbrot.getScale() * 4);
+                    mandelbrot.zoomOut(originalX,originalY);
                 }
                 try {
                     update();

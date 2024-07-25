@@ -43,4 +43,9 @@ public class Complex {
     public double getIm() {
         return im;
     }
+
+    @Override
+    public String toString() {
+        return String.format("%g%+gi",re,im);
+    }
 }

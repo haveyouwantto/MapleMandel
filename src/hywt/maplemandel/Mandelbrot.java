@@ -1,7 +1,9 @@
 package hywt.maplemandel;
+
 import java.awt.Graphics;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -12,7 +14,7 @@ import java.util.concurrent.Future;
 
 public class Mandelbrot {
 
-    private Complex center;
+    private DeepComplex center;
     private double scale;
     private int maxIter;
     private int[][] iterations;
@@ -24,13 +26,13 @@ public class Mandelbrot {
     ExecutorService executor;
 
     public Mandelbrot() {
-        this.center = new Complex(0, 0);
+        this.center = new DeepComplex(BigDecimal.ZERO, BigDecimal.ZERO);
         this.scale = 4;
         this.maxIter = 256;
         this.iterations = new int[500][500];
         this.image = new BufferedImage(500, 500, BufferedImage.TYPE_INT_RGB);
         this.stats = new MandelbrotStats();
-        stats.totalPixels = image.getWidth()*image.getHeight();
+        stats.totalPixels = image.getWidth() * image.getHeight();
 
         int numThreads = Runtime.getRuntime().availableProcessors();
         executor = Executors.newFixedThreadPool(numThreads);
@@ -39,17 +41,29 @@ public class Mandelbrot {
     public Complex getDelta(int x, int y) {
         int width = image.getWidth();
         int height = image.getHeight();
-        double deltaX = (x - width / 2.0) * (scale / width);
-        double deltaY = (y - height / 2.0) * (scale / height);
+        double deltaX = (x - width / 2.0) / width * scale;
+        double deltaY = (y - height / 2.0) / height * scale;
         return new Complex(deltaX, deltaY);
     }
 
-    public void gotoLocation(Complex c, double scale) {
-        this.center = c;
-        this.scale = scale;
+    public void zoomIn(int x, int y) {
+        Complex delta = getDelta(x, y);
+        center = center.add(delta);
+        setScale(scale / 4);
     }
 
-    public Complex getCenter() {
+    public void zoomOut(int x, int y) {
+        Complex delta = getDelta(x, y);
+        center = center.add(delta);
+        setScale(scale * 4);
+    }
+
+    public void gotoLocation(DeepComplex c, double scale) {
+        this.center = c;
+        setScale(scale);
+    }
+
+    public DeepComplex getCenter() {
         return center;
     }
 
@@ -67,6 +81,7 @@ public class Mandelbrot {
 
     public void setScale(double scale) {
         this.scale = scale;
+        this.center.setPrecision((int) (-Math.log10(scale) + 10));
     }
 
     public void draw(Graphics g) {
@@ -74,15 +89,16 @@ public class Mandelbrot {
         int width = image.getWidth();
         int height = image.getHeight();
 
+        List<Complex> ref = getReference(center);
         List<Future<?>> futures = new ArrayList<>();
 
         // 先进行间隔计算
         for (int x = 0; x < width; x += 2) {
             int finalX = x;
-            futures.add(executor.submit(()->{
+            futures.add(executor.submit(() -> {
                 for (int y = 0; y < height; y += 2) {
-                    Complex c = center.add(getDelta(finalX, y));
-                    int iter = getIter(c.getRe(), c.getIm());
+                    Complex c = getDelta(finalX, y);
+                    int iter = getPTIter(c, ref);
                     iterations[finalX][y] = iter;
 
                     Color color = (iter == maxIter) ? Color.BLACK : getColor(iter);
@@ -102,26 +118,26 @@ public class Mandelbrot {
         // 使用智能猜测填充左右像素
         for (int y = 0; y < height; y += 2) {
             int finalY = y;
-            futures.add(executor.submit(()->{
-            for (int x = 1; x < width; x += 2) {
-                if (finalY < height - 1 && x < width - 1) {
-                    int left = iterations[x - 1][finalY];
-                    int right = iterations[x + 1][finalY];
-                    if (left == right) {
-                        iterations[x][finalY] = left;
-                        Color color = (left == maxIter) ? Color.BLACK : getColor(left);
-                        image.setRGB(x, finalY, color.getRGB());
-                        stats.guessed++;
-                        continue;
+            futures.add(executor.submit(() -> {
+                for (int x = 1; x < width; x += 2) {
+                    if (finalY < height - 1 && x < width - 1) {
+                        int left = iterations[x - 1][finalY];
+                        int right = iterations[x + 1][finalY];
+                        if (left == right) {
+                            iterations[x][finalY] = left;
+                            Color color = (left == maxIter) ? Color.BLACK : getColor(left);
+                            image.setRGB(x, finalY, color.getRGB());
+                            stats.guessed++;
+                            continue;
+                        }
                     }
+                    // 进行详细计算
+                    Complex c = getDelta(x, finalY);
+                    int iter = getPTIter(c, ref);
+                    iterations[x][finalY] = iter;
+                    Color color = (iter == maxIter) ? Color.BLACK : getColor(iter);
+                    image.setRGB(x, finalY, color.getRGB());
                 }
-                // 进行详细计算
-                Complex c = center.add(getDelta(x, finalY));
-                int iter = getIter(c.getRe(), c.getIm());
-                iterations[x][finalY] = iter;
-                Color color = (iter == maxIter) ? Color.BLACK : getColor(iter);
-                image.setRGB(x, finalY, color.getRGB());
-            }
             }));
         }
 
@@ -136,26 +152,26 @@ public class Mandelbrot {
         // 使用智能猜测填充上下像素
         for (int y = 1; y < height; y += 2) {
             int finalY = y;
-            futures.add(executor.submit(()->{
-            for (int x = 0; x < width; x++) {
-                if (x < width - 1 && finalY < height - 1) {
-                    int top = iterations[x][finalY - 1];
-                    int bottom = iterations[x][finalY + 1];
-                    if (top == bottom) {
-                        iterations[x][finalY] = top;
-                        Color color = (top == maxIter) ? Color.BLACK : getColor(top);
-                        image.setRGB(x, finalY, color.getRGB());
-                        stats.guessed++;
-                        continue;
+            futures.add(executor.submit(() -> {
+                for (int x = 0; x < width; x++) {
+                    if (x < width - 1 && finalY < height - 1) {
+                        int top = iterations[x][finalY - 1];
+                        int bottom = iterations[x][finalY + 1];
+                        if (top == bottom) {
+                            iterations[x][finalY] = top;
+                            Color color = (top == maxIter) ? Color.BLACK : getColor(top);
+                            image.setRGB(x, finalY, color.getRGB());
+                            stats.guessed++;
+                            continue;
+                        }
                     }
+                    // 进行详细计算
+                    Complex c = getDelta(x, finalY);
+                    int iter = getPTIter(c, ref);
+                    iterations[x][finalY] = iter;
+                    Color color = (iter == maxIter) ? Color.BLACK : getColor(iter);
+                    image.setRGB(x, finalY, color.getRGB());
                 }
-                // 进行详细计算
-                Complex c = center.add(getDelta(x, finalY));
-                int iter = getIter(c.getRe(), c.getIm());
-                iterations[x][finalY] = iter;
-                Color color = (iter == maxIter) ? Color.BLACK : getColor(iter);
-                image.setRGB(x, finalY, color.getRGB());
-            }
             }));
         }
 
@@ -221,9 +237,56 @@ public class Mandelbrot {
             return guessed;
         }
 
-        protected void reset(){
+        protected void reset() {
             guessed = 0;
         }
+    }
+
+    private static final BigDecimal ESCAPE_RADIUS = new BigDecimal(10000);
+
+    public List<Complex> getReference(DeepComplex start) {
+        List<Complex> referencePoints = new ArrayList<>();
+        int precision = (int) (-Math.log10(scale) + 10);
+        DeepComplex z = new DeepComplex(0,0).setPrecision(precision);
+        referencePoints.add(z.toComplex());
+
+        for (int i = 0; i < this.maxIter; i++) {
+            if (z.abs().compareTo(ESCAPE_RADIUS) > 0) {
+                break;
+            }
+            System.out.println(start);
+            System.out.println(z);
+            referencePoints.add(z.toComplex());
+            z = z.mul(z).add(start);
+        }
+
+        return referencePoints;
+    }
+
+    public int getPTIter(Complex delta, List<Complex> reference) {
+        double dRe = 0;
+        double dIm = 0;
+
+        double tmp;
+        int iter = 0;
+        while (iter < maxIter) {
+            Complex Z = reference.get(iter);
+
+            // 计算delta的影响
+            tmp = 2 * (Z.getRe() * dRe - Z.getIm() * dIm) + (dRe * dRe - dIm * dIm) + delta.getRe();
+            dIm = 2 * (Z.getRe() * dIm + Z.getIm() * dRe + dRe * dIm) + delta.getIm();
+            dRe = tmp;
+
+            iter++;
+
+            Complex Z2 = reference.get(iter); // 合并参考与delta
+            double valR = Z2.getRe() + dRe;
+            double valI = Z2.getIm() + dIm;
+            double val = valR * valR + valI * valI; // 逃逸检测
+
+            if (val > 4 || iter >= reference.size() - 1) return iter;
+        }
+        return iter;
     }
 
 }
