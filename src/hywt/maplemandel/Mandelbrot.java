@@ -248,43 +248,45 @@ public class Mandelbrot {
         List<Complex> referencePoints = new ArrayList<>();
         int precision = (int) (-Math.log10(scale) + 10);
         DeepComplex z = new DeepComplex(0,0).setPrecision(precision);
-        referencePoints.add(z.toComplex());
 
         for (int i = 0; i < this.maxIter; i++) {
             if (z.abs().compareTo(ESCAPE_RADIUS) > 0) {
                 break;
             }
-            System.out.println(start);
-            System.out.println(z);
             referencePoints.add(z.toComplex());
             z = z.mul(z).add(start);
         }
-
         return referencePoints;
     }
 
     public int getPTIter(Complex delta, List<Complex> reference) {
         double dRe = 0;
         double dIm = 0;
-
         double tmp;
+
         int iter = 0;
+        int refIter = 0;
         while (iter < maxIter) {
-            Complex Z = reference.get(iter);
+            Complex Z = reference.get(refIter);
 
             // 计算delta的影响
             tmp = 2 * (Z.getRe() * dRe - Z.getIm() * dIm) + (dRe * dRe - dIm * dIm) + delta.getRe();
             dIm = 2 * (Z.getRe() * dIm + Z.getIm() * dRe + dRe * dIm) + delta.getIm();
             dRe = tmp;
+            refIter++;
 
-            iter++;
-
-            Complex Z2 = reference.get(iter); // 合并参考与delta
+            Complex Z2 = reference.get(refIter); // 合并参考与delta
             double valR = Z2.getRe() + dRe;
             double valI = Z2.getIm() + dIm;
             double val = valR * valR + valI * valI; // 逃逸检测
 
-            if (val > 4 || iter >= reference.size() - 1) return iter;
+            if (val > 4) return iter;
+            if (val < dRe * dRe + dIm * dIm || refIter == reference.size() - 1) { // 检测是否需要变基
+                dRe = valR;
+                dIm = valI;
+                refIter = 0;
+            }
+            iter++;
         }
         return iter;
     }
