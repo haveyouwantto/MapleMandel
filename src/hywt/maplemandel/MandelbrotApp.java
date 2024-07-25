@@ -216,6 +216,7 @@ class DrawingPanel extends JPanel {
     public void update() throws Exception {
         new Thread(() -> {
             try {
+                mandelbrot.cancel();
                 mandelbrot.draw(image);
                 repaint();
                 if (onComplete != null) onComplete.call();

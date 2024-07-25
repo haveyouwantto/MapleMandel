@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -38,6 +40,7 @@ public class Mandelbrot {
         int numThreads = Runtime.getRuntime().availableProcessors();
         executor = Executors.newFixedThreadPool(numThreads);
         drawing = false;
+        futures = Collections.synchronizedList(new ArrayList<>());
     }
 
     public Complex getDelta(int x, int y) {
@@ -89,13 +92,14 @@ public class Mandelbrot {
         for (Future<?> future : futures) {
             future.cancel(true);
         }
+        futures.clear();
     }
 
     public boolean isDrawing() {
         return drawing;
     }
 
-    public void draw(BufferedImage image) {
+    public synchronized void draw(BufferedImage image) {
         drawing = true;
         stats.reset();
         int width = image.getWidth();
@@ -104,7 +108,6 @@ public class Mandelbrot {
         g.clearRect(0, 0, width, height);
 
         List<Complex> ref = getReference(center);
-        futures = new ArrayList<>();
 
         // 先进行间隔计算
         for (int x = 0; x < width; x += 2) {
@@ -133,6 +136,8 @@ public class Mandelbrot {
                 e.printStackTrace();
             }
         }
+
+        if (!drawing) return;
 
         // 使用智能猜测填充左右像素
         for (int y = 0; y < height; y += 2) {
@@ -173,6 +178,8 @@ public class Mandelbrot {
                 e.printStackTrace();
             }
         }
+
+        if (!drawing) return;
 
         // 使用智能猜测填充上下像素
         for (int y = 1; y < height; y += 2) {
