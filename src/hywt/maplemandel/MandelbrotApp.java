@@ -8,9 +8,10 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.concurrent.Callable;
 
-public class MandelbrotApp extends JFrame{
+public class MandelbrotApp extends JFrame {
     public MandelbrotApp() throws Exception {
         // 创建一个JFrame窗口
         super("Mandelbrot Tester");
@@ -38,7 +39,8 @@ public class MandelbrotApp extends JFrame{
             int userSelection = fileChooser.showSaveDialog(null);
             if (userSelection == JFileChooser.APPROVE_OPTION) {
                 File fileToSave = fileChooser.getSelectedFile();
-                if (!fileToSave.getName().endsWith(".png")) fileToSave = new File(fileToSave.getAbsolutePath()+".png");
+                if (!fileToSave.getName().endsWith(".png"))
+                    fileToSave = new File(fileToSave.getAbsolutePath() + ".png");
                 try {
                     // 保存图像为PNG文件
                     ImageIO.write(panel.getImage(), "png", fileToSave);
@@ -56,7 +58,7 @@ public class MandelbrotApp extends JFrame{
             Mandelbrot mandelbrot = panel.getMandelbrot();
             Mandelbrot.MandelbrotStats stats = mandelbrot.getStats();
 
-            double guessed = (double) stats.guessed / stats.totalPixels;
+            double guessed = (double) stats.guessed.get() / stats.totalPixels;
 
             label.setText(String.format("Zoom: %.2e It: %d Guessed: %.0f%%", 4 / mandelbrot.getScale(), mandelbrot.getMaxIter(), guessed*100));
             return null;
@@ -77,9 +79,28 @@ public class MandelbrotApp extends JFrame{
         JButton increaseIterationsButton = new JButton("增加迭代次数");
         increaseIterationsButton.addActionListener(e -> {
             try {
-            panel.getMandelbrot().setMaxIter(panel.getMandelbrot().getMaxIter() * 2);
+                panel.getMandelbrot().setMaxIter(panel.getMandelbrot().getMaxIter() * 2);
                 panel.update();
-            panel.repaint();
+                panel.repaint();
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+
+        JButton locationButton = new JButton("位置");
+        locationButton.addActionListener(e -> {
+            try {
+                LocationPanel locationPanel = new LocationPanel()
+                        .setPos(panel.getMandelbrot().getCenter())
+                        .setScale(panel.getMandelbrot().getScale())
+                        .setIterations(panel.getMandelbrot().getMaxIter());
+                int result = JOptionPane.showConfirmDialog(null, locationPanel, "位置",
+                        JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+                if (result == JOptionPane.OK_OPTION) {
+                    panel.getMandelbrot().gotoLocation(locationPanel.getPos(), locationPanel.getScale());
+                    panel.getMandelbrot().setMaxIter(locationPanel.getIterations());
+                    panel.update();
+                }
             } catch (Exception ex) {
                 throw new RuntimeException(ex);
             }
@@ -89,8 +110,28 @@ public class MandelbrotApp extends JFrame{
         toolBar.add(saveButton);
         toolBar.add(resetButton);
         toolBar.add(increaseIterationsButton);
-        getContentPane().add(toolBar,BorderLayout.NORTH);
-        getContentPane().add(label,BorderLayout.SOUTH);
+        toolBar.add(locationButton);
+        getContentPane().add(toolBar, BorderLayout.NORTH);
+        getContentPane().add(label, BorderLayout.SOUTH);
+
+
+        Thread drawThread = new Thread(() -> {
+            try {
+                Mandelbrot mandelbrot = panel.getMandelbrot();
+                while (true) {
+                    if (mandelbrot.isDrawing()){
+                        panel.repaint();
+                        Mandelbrot.MandelbrotStats stats = mandelbrot.getStats();
+                        double guessed = (double) stats.guessed.get() / stats.totalPixels;
+                        label.setText(String.format("Zoom: %.2e It: %d Guessed: %.0f%%", 4 / mandelbrot.getScale(), mandelbrot.getMaxIter(), guessed * 100));
+                    }
+                    Thread.sleep(20);
+                }
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        drawThread.start();
     }
 }
 
@@ -100,9 +141,12 @@ class DrawingPanel extends JPanel {
     private Callable<Void> onComplete;
 
     public DrawingPanel() throws Exception {
-        // 创建一个500x500的BufferedImage
-        image = new BufferedImage(500, 500, BufferedImage.TYPE_INT_RGB);
-        mandelbrot = new Mandelbrot();
+        int width = 1000;
+        int height = 1000;
+
+        // 创建一个BufferedImage
+        image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        mandelbrot = new Mandelbrot(width, height);
 
         addMouseListener(new MouseAdapter() {
             @Override
@@ -114,16 +158,15 @@ class DrawingPanel extends JPanel {
                 int originalY = (int) ((e.getY() - bounds.y) / (double) bounds.height * image.getHeight());
 
                 if (SwingUtilities.isLeftMouseButton(e)) {
-                    mandelbrot.zoomIn(originalX,originalY);
+                    mandelbrot.zoomIn(originalX, originalY);
                 } else if (SwingUtilities.isRightMouseButton(e)) {
-                    mandelbrot.zoomOut(originalX,originalY);
+                    mandelbrot.zoomOut(originalX, originalY);
                 }
                 try {
                     update();
                 } catch (Exception ex) {
                     throw new RuntimeException(ex);
                 }
-                repaint();
             }
         });
     }
@@ -152,6 +195,8 @@ class DrawingPanel extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+        Graphics2D g2d = (Graphics2D) g;
+        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,RenderingHints.VALUE_INTERPOLATION_BILINEAR);
         // 绘制BufferedImage
         if (image != null) {
             Rectangle bounds = getImageBounds();
@@ -164,15 +209,22 @@ class DrawingPanel extends JPanel {
     }
 
     public void update() throws Exception {
-        mandelbrot.draw(image.getGraphics());
-        if (onComplete != null) onComplete.call();
+        new Thread(()->{
+            try {
+                mandelbrot.draw(image);
+                repaint();
+                if (onComplete != null) onComplete.call();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }).start();
     }
 
-    public Mandelbrot getMandelbrot(){
+    public Mandelbrot getMandelbrot() {
         return mandelbrot;
     }
 
-    public void setOnComplete(Callable<Void> callable){
+    public void setOnComplete(Callable<Void> callable) {
         onComplete = callable;
     }
 }

@@ -5,12 +5,9 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Mandelbrot {
 
@@ -18,29 +15,32 @@ public class Mandelbrot {
     private double scale;
     private int maxIter;
     private int[][] iterations;
-    private BufferedImage image;
 
     private MandelbrotStats stats;
+    private int width;
+    private int height;
+    private boolean drawing;
 
     // 创建线程池
     ExecutorService executor;
+    private List<Future<?>> futures;
 
-    public Mandelbrot() {
+    public Mandelbrot(int width, int height) {
         this.center = new DeepComplex(BigDecimal.ZERO, BigDecimal.ZERO);
         this.scale = 4;
         this.maxIter = 256;
-        this.iterations = new int[500][500];
-        this.image = new BufferedImage(500, 500, BufferedImage.TYPE_INT_RGB);
-        this.stats = new MandelbrotStats();
-        stats.totalPixels = image.getWidth() * image.getHeight();
+        this.iterations = new int[width][height];
+        this.width = width;
+        this.height = height;
+
+        this.stats = new MandelbrotStats(width * height);
 
         int numThreads = Runtime.getRuntime().availableProcessors();
         executor = Executors.newFixedThreadPool(numThreads);
+        drawing = false;
     }
 
     public Complex getDelta(int x, int y) {
-        int width = image.getWidth();
-        int height = image.getHeight();
         double deltaX = (x - width / 2.0) / width * scale;
         double deltaY = (y - height / 2.0) / height * scale;
         return new Complex(deltaX, deltaY);
@@ -80,29 +80,46 @@ public class Mandelbrot {
     }
 
     public void setScale(double scale) {
+        cancel();
         this.scale = scale;
         this.center.setPrecision((int) (-Math.log10(scale) + 10));
     }
 
-    public void draw(Graphics g) {
+    public void cancel() {
+        for (Future<?> future : futures) {
+            future.cancel(true);
+        }
+    }
+
+    public boolean isDrawing() {
+        return drawing;
+    }
+
+    public void draw(BufferedImage image) {
+        drawing = true;
         stats.reset();
         int width = image.getWidth();
         int height = image.getHeight();
+        Graphics g = image.getGraphics();
+        g.clearRect(0, 0, width, height);
 
         List<Complex> ref = getReference(center);
-        List<Future<?>> futures = new ArrayList<>();
+        futures = new ArrayList<>();
 
         // 先进行间隔计算
         for (int x = 0; x < width; x += 2) {
             int finalX = x;
             futures.add(executor.submit(() -> {
+                Graphics finalG = image.getGraphics();
                 for (int y = 0; y < height; y += 2) {
                     Complex c = getDelta(finalX, y);
                     int iter = getPTIter(c, ref);
                     iterations[finalX][y] = iter;
 
                     Color color = (iter == maxIter) ? Color.BLACK : getColor(iter);
-                    image.setRGB(finalX, y, color.getRGB());
+                    finalG.setColor(color);
+                    finalG.fillRect(finalX, y, 2, 2);
+//                    image.setRGB(finalX, y, color.getRGB());
                 }
             }));
         }
@@ -110,8 +127,9 @@ public class Mandelbrot {
         for (Future<?> future : futures) {
             try {
                 future.get();
+            } catch (CancellationException e) {
             } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
             }
         }
 
@@ -119,6 +137,7 @@ public class Mandelbrot {
         for (int y = 0; y < height; y += 2) {
             int finalY = y;
             futures.add(executor.submit(() -> {
+                Graphics finalG = image.getGraphics();
                 for (int x = 1; x < width; x += 2) {
                     if (finalY < height - 1 && x < width - 1) {
                         int left = iterations[x - 1][finalY];
@@ -126,8 +145,9 @@ public class Mandelbrot {
                         if (left == right) {
                             iterations[x][finalY] = left;
                             Color color = (left == maxIter) ? Color.BLACK : getColor(left);
-                            image.setRGB(x, finalY, color.getRGB());
-                            stats.guessed++;
+                            finalG.setColor(color);
+                            finalG.fillRect(x, finalY, 1, 2);
+                            stats.guessed.incrementAndGet();
                             continue;
                         }
                     }
@@ -136,7 +156,8 @@ public class Mandelbrot {
                     int iter = getPTIter(c, ref);
                     iterations[x][finalY] = iter;
                     Color color = (iter == maxIter) ? Color.BLACK : getColor(iter);
-                    image.setRGB(x, finalY, color.getRGB());
+                    finalG.setColor(color);
+                    finalG.fillRect(x, finalY, 1, 2);
                 }
             }));
         }
@@ -144,8 +165,9 @@ public class Mandelbrot {
         for (Future<?> future : futures) {
             try {
                 future.get();
+            } catch (CancellationException e) {
             } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
             }
         }
 
@@ -161,7 +183,7 @@ public class Mandelbrot {
                             iterations[x][finalY] = top;
                             Color color = (top == maxIter) ? Color.BLACK : getColor(top);
                             image.setRGB(x, finalY, color.getRGB());
-                            stats.guessed++;
+                            stats.guessed.incrementAndGet();
                             continue;
                         }
                     }
@@ -178,12 +200,13 @@ public class Mandelbrot {
         for (Future<?> future : futures) {
             try {
                 future.get();
+            } catch (CancellationException e) {
             } catch (InterruptedException | ExecutionException e) {
                 throw new RuntimeException(e);
             }
         }
 
-        g.drawImage(image, 0, 0, null);
+        drawing = false;
     }
 
 
@@ -226,19 +249,24 @@ public class Mandelbrot {
     }
 
     static class MandelbrotStats {
-        protected int totalPixels;
-        protected int guessed;
+        protected final int totalPixels;
+        protected final AtomicInteger guessed;
+
+        MandelbrotStats(int totalPixels) {
+            this.totalPixels = totalPixels;
+            this.guessed = new AtomicInteger();
+        }
 
         public int getTotalPixels() {
             return totalPixels;
         }
 
-        public int getGuessed() {
+        public AtomicInteger getGuessed() {
             return guessed;
         }
 
         protected void reset() {
-            guessed = 0;
+            guessed.set(0);
         }
     }
 
@@ -247,7 +275,7 @@ public class Mandelbrot {
     public List<Complex> getReference(DeepComplex start) {
         List<Complex> referencePoints = new ArrayList<>();
         int precision = (int) (-Math.log10(scale) + 10);
-        DeepComplex z = new DeepComplex(0,0).setPrecision(precision);
+        DeepComplex z = new DeepComplex(0, 0).setPrecision(precision);
 
         for (int i = 0; i < this.maxIter; i++) {
             if (z.abs().compareTo(ESCAPE_RADIUS) > 0) {
