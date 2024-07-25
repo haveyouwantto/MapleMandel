@@ -4,29 +4,124 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 
 public class Mandelbrot {
-    private double re;       // 实部
-    private double im;       // 虚部
-    private double scale;    // 缩放比例
-    private int maxIter;     // 最大迭代次数
-    private int[][] iterations; // 迭代次数数组
-    private BufferedImage image; // 图像缓冲区
+
+    private Complex center;
+    private double scale;
+    private int maxIter;
+    private int[][] iterations;
+    private BufferedImage image;
+
+    private MandelbrotStats stats;
 
     public Mandelbrot() {
-        this.re = 0.0;
-        this.im = 0.0;
-        this.scale = 4.0;
+        this.center = new Complex(0, 0);
+        this.scale = 4;
         this.maxIter = 256;
-        this.iterations = new int[500][500]; // 假设图像尺寸为500x500
+        this.iterations = new int[500][500];
         this.image = new BufferedImage(500, 500, BufferedImage.TYPE_INT_RGB);
+        this.stats = new MandelbrotStats();
+        stats.totalPixels = image.getWidth()*image.getHeight();
     }
 
-    // 设置参数的方法
-    public void setParameters(double re, double im, double scale, int maxIter) {
-        this.re = re;
-        this.im = im;
+    public Complex getDelta(int x, int y) {
+        int width = image.getWidth();
+        int height = image.getHeight();
+        double deltaX = (x - width / 2.0) * (scale / width);
+        double deltaY = (y - height / 2.0) * (scale / height);
+        return new Complex(deltaX, deltaY);
+    }
+
+    public void gotoLocation(Complex c, double scale) {
+        this.center = c;
         this.scale = scale;
+    }
+
+    public Complex getCenter() {
+        return center;
+    }
+
+    public int getMaxIter() {
+        return maxIter;
+    }
+
+    public void setMaxIter(int maxIter) {
         this.maxIter = maxIter;
     }
+
+    public double getScale() {
+        return scale;
+    }
+
+    public void setScale(double scale) {
+        this.scale = scale;
+    }
+
+    public void draw(Graphics g) {
+        stats.reset();
+        int width = image.getWidth();
+        int height = image.getHeight();
+
+        // 先进行间隔计算
+        for (int x = 0; x < width; x += 2) {
+            for (int y = 0; y < height; y += 2) {
+                Complex c = center.add(getDelta(x, y));
+                int iter = getIter(c.getRe(), c.getIm());
+                iterations[x][y] = iter;
+
+                Color color = (iter == maxIter) ? Color.BLACK : getColor(iter);
+                image.setRGB(x, y, color.getRGB());
+            }
+        }
+
+        // 使用智能猜测填充左右像素
+        for (int y = 0; y < height; y += 2) {
+            for (int x = 1; x < width; x += 2) {
+                if (y < height - 1 && x < width - 1) {
+                    int left = iterations[x - 1][y];
+                    int right = iterations[x + 1][y];
+                    if (left == right) {
+                        iterations[x][y] = left;
+                        Color color = (left == maxIter) ? Color.BLACK : getColor(left);
+                        image.setRGB(x, y, color.getRGB());
+                        stats.guessed++;
+                        continue;
+                    }
+                }
+                // 进行详细计算
+                Complex c = center.add(getDelta(x, y));
+                int iter = getIter(c.getRe(), c.getIm());
+                iterations[x][y] = iter;
+                Color color = (iter == maxIter) ? Color.BLACK : getColor(iter);
+                image.setRGB(x, y, color.getRGB());
+            }
+        }
+
+        // 使用智能猜测填充上下像素
+        for (int y = 1; y < height; y += 2) {
+            for (int x = 0; x < width; x++) {
+                if (x < width - 1 && y < height - 1) {
+                    int top = iterations[x][y - 1];
+                    int bottom = iterations[x][y + 1];
+                    if (top == bottom) {
+                        iterations[x][y] = top;
+                        Color color = (top == maxIter) ? Color.BLACK : getColor(top);
+                        image.setRGB(x, y, color.getRGB());
+                        stats.guessed++;
+                        continue;
+                    }
+                }
+                // 进行详细计算
+                Complex c = center.add(getDelta(x, y));
+                int iter = getIter(c.getRe(), c.getIm());
+                iterations[x][y] = iter;
+                Color color = (iter == maxIter) ? Color.BLACK : getColor(iter);
+                image.setRGB(x, y, color.getRGB());
+            }
+        }
+
+        g.drawImage(image, 0, 0, null);
+    }
+
 
     // 获取迭代次数的方法
     public int getIter(double cRe, double cIm) {
@@ -47,38 +142,6 @@ public class Mandelbrot {
         return iter;
     }
 
-    // 绘制方法
-    public void draw(Graphics g) {
-        int width = image.getWidth();
-        int height = image.getHeight();
-
-        // 计算每个像素的迭代次数
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                // 将屏幕坐标转换为复平面上的坐标
-                double cRe = (x - width / 2.0) * (scale / width) + re;
-                double cIm = (y - height / 2.0) * (scale / height) + im;
-
-                // 计算迭代次数
-                int iter = getIter(cRe, cIm);
-                iterations[x][y] = iter;
-
-                // 设置颜色
-                            Color color;
-                            if (iter == maxIter) {
-                                color = Color.BLACK; // 属于Mandelbrot集合的点
-                            } else {
-                                color = getColor(iter); // 根据迭代次数计算颜色
-                            }
-                            image.setRGB(x, y, color.getRGB());
-            }
-        }
-
-        // 绘制图像到屏幕
-        g.drawImage(image, 0, 0, null);
-    }
-
-
     private Color getColor(int iter) {
         // 设置频率
         final double frequency = 0.2;
@@ -93,4 +156,26 @@ public class Mandelbrot {
         // 生成颜色
         return new Color((int) red, (int) green, (int) blue);
     }
+
+    public MandelbrotStats getStats() {
+        return stats;
+    }
+
+    static class MandelbrotStats {
+        protected int totalPixels;
+        protected int guessed;
+
+        public int getTotalPixels() {
+            return totalPixels;
+        }
+
+        public int getGuessed() {
+            return guessed;
+        }
+
+        protected void reset(){
+            guessed = 0;
+        }
+    }
+
 }

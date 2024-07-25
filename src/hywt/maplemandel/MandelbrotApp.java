@@ -3,24 +3,27 @@ package hywt.maplemandel;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.Callable;
 
-public class MandelbrotApp {
-    public static void main(String[] args) {
+public class MandelbrotApp extends JFrame{
+    public MandelbrotApp() throws Exception {
         // 创建一个JFrame窗口
-        JFrame frame = new JFrame("Mandelbrot Tester");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(500, 500);
-        frame.setLocationRelativeTo(null);
+        super("Mandelbrot Tester");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(500, 500);
+        setLocationRelativeTo(null);
 
         // 创建并添加一个绘图面板
         DrawingPanel panel = new DrawingPanel();
-        frame.add(panel);
+        add(panel);
 
         // 显示窗口
-        frame.setVisible(true);
+        setVisible(true);
 
 
         // 创建工具栏并添加保存按钮
@@ -47,21 +50,104 @@ public class MandelbrotApp {
             }
         });
 
+        JLabel label = new JLabel("i");
+
+        panel.setOnComplete(() -> {
+            Mandelbrot mandelbrot = panel.getMandelbrot();
+            Mandelbrot.MandelbrotStats stats = mandelbrot.getStats();
+
+            double guessed = (double) stats.guessed / stats.totalPixels;
+
+            label.setText(String.format("Zoom: %.2e It: %d Guessed: %.0f%%", 4 / mandelbrot.getScale(), mandelbrot.getMaxIter(), guessed*100));
+            return null;
+        });
+        panel.update();
+
+        JButton resetButton = new JButton("重置");
+        resetButton.addActionListener(e -> {
+            try {
+                panel.getMandelbrot().gotoLocation(new Complex(0, 0), 4);
+                panel.update();
+                panel.repaint();
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+
+        JButton increaseIterationsButton = new JButton("增加迭代次数");
+        increaseIterationsButton.addActionListener(e -> {
+            try {
+            panel.getMandelbrot().setMaxIter(panel.getMandelbrot().getMaxIter() * 2);
+                panel.update();
+            panel.repaint();
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+
+
         toolBar.add(saveButton);
-        frame.getContentPane().add(toolBar,BorderLayout.NORTH);
+        toolBar.add(resetButton);
+        toolBar.add(increaseIterationsButton);
+        getContentPane().add(toolBar,BorderLayout.NORTH);
+        getContentPane().add(label,BorderLayout.SOUTH);
     }
 }
 
 class DrawingPanel extends JPanel {
     private BufferedImage image;
+    private Mandelbrot mandelbrot;
+    private Callable<Void> onComplete;
 
-    public DrawingPanel() {
+    public DrawingPanel() throws Exception {
         // 创建一个500x500的BufferedImage
         image = new BufferedImage(500, 500, BufferedImage.TYPE_INT_RGB);
-        // 在图像上绘制一个圆
-        Graphics g = image.getGraphics();
-        Mandelbrot mandelbrot = new Mandelbrot();
-        mandelbrot.draw(g);
+        mandelbrot = new Mandelbrot();
+
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                Rectangle bounds = getImageBounds();
+
+                // 转换点击坐标到原始画布坐标
+                int originalX = (int) ((e.getX() - bounds.x) / (double) bounds.width * image.getWidth());
+                int originalY = (int) ((e.getY() - bounds.y) / (double) bounds.height * image.getHeight());
+
+                Complex newCenter = mandelbrot.getDelta(originalX, originalY).add(mandelbrot.getCenter());
+                if (SwingUtilities.isLeftMouseButton(e)) {
+                    mandelbrot.gotoLocation(newCenter, mandelbrot.getScale() / 4);
+                } else if (SwingUtilities.isRightMouseButton(e)) {
+                    mandelbrot.gotoLocation(newCenter, mandelbrot.getScale() * 4);
+                }
+                try {
+                    update();
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+                repaint();
+            }
+        });
+    }
+
+    private Rectangle getImageBounds() {
+        // 获取当前面板尺寸
+        Dimension dimension = getSize();
+        int imgWidth = image.getWidth();
+        int imgHeight = image.getHeight();
+        double aspectRatio = (double) imgWidth / imgHeight;
+
+        int newWidth = dimension.width;
+        int newHeight = (int) (dimension.width / aspectRatio);
+
+        if (newHeight > dimension.height) {
+            newHeight = dimension.height;
+            newWidth = (int) (dimension.height * aspectRatio);
+        }
+
+        int x = (dimension.width - newWidth) / 2;
+        int y = (dimension.height - newHeight) / 2;
+
+        return new Rectangle(x, y, newWidth, newHeight);
     }
 
     @Override
@@ -69,27 +155,25 @@ class DrawingPanel extends JPanel {
         super.paintComponent(g);
         // 绘制BufferedImage
         if (image != null) {
-            Dimension dimension = this.getSize();
-            int imgWidth = image.getWidth(null);
-            int imgHeight = image.getHeight(null);
-            double aspectRatio = (double) imgWidth / imgHeight;
-
-            int newWidth = dimension.width;
-            int newHeight = (int) (dimension.width / aspectRatio);
-
-            if (newHeight > dimension.height) {
-                newHeight = dimension.height;
-                newWidth = (int) (dimension.height * aspectRatio);
-            }
-
-            int x = (dimension.width - newWidth) / 2;
-            int y = (dimension.height - newHeight) / 2;
-
-            g.drawImage(image, x, y, newWidth, newHeight, null);
+            Rectangle bounds = getImageBounds();
+            g.drawImage(image, bounds.x, bounds.y, bounds.width, bounds.height, null);
         }
     }
 
     public BufferedImage getImage() {
         return image;
+    }
+
+    public void update() throws Exception {
+        mandelbrot.draw(image.getGraphics());
+        if (onComplete != null) onComplete.call();
+    }
+
+    public Mandelbrot getMandelbrot(){
+        return mandelbrot;
+    }
+
+    public void setOnComplete(Callable<Void> callable){
+        onComplete = callable;
     }
 }
