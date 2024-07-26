@@ -2,13 +2,15 @@ package hywt.maplemandel;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.concurrent.Callable;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 public class MandelbrotApp extends JFrame {
     private final DrawingPanel panel;
@@ -31,28 +33,10 @@ public class MandelbrotApp extends JFrame {
 
         // 创建工具栏并添加保存按钮
         JToolBar toolBar = new JToolBar();
-        JButton saveButton = new JButton("保存");
 
-        saveButton.addActionListener(e -> {
-            // 弹出文件选择对话框
-            JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setDialogTitle("保存图像");
-
-            int userSelection = fileChooser.showSaveDialog(null);
-            if (userSelection == JFileChooser.APPROVE_OPTION) {
-                File fileToSave = fileChooser.getSelectedFile();
-                if (!fileToSave.getName().endsWith(".png"))
-                    fileToSave = new File(fileToSave.getAbsolutePath() + ".png");
-                try {
-                    // 保存图像为PNG文件
-                    ImageIO.write(panel.getImage(), "png", fileToSave);
-                    JOptionPane.showMessageDialog(null, "图像已保存为 " + fileToSave.getAbsolutePath());
-                } catch (IOException ioException) {
-                    ioException.printStackTrace();
-                    JOptionPane.showMessageDialog(null, "保存图像时出错！");
-                }
-            }
-        });
+        JButton saveBtn = createSaveBtn();
+        JButton loadBtn = createLoadBtn();
+        JButton saveImgBtn = createSaveImgBtn();
 
         label = new JLabel("i");
 
@@ -85,44 +69,13 @@ public class MandelbrotApp extends JFrame {
             }
         });
 
-        JButton locationButton = new JButton("位置");
-        locationButton.addActionListener(e -> {
-            try {
-                LocationPanel locationPanel = new LocationPanel()
-                        .setPos(panel.getMandelbrot().getCenter())
-                        .setScale(panel.getMandelbrot().getScale())
-                        .setIterations(panel.getMandelbrot().getMaxIter());
-                int result = JOptionPane.showConfirmDialog(null, locationPanel, "位置",
-                        JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-                if (result == JOptionPane.OK_OPTION) {
-                    panel.getMandelbrot().gotoLocation(locationPanel.getPos(), locationPanel.getScale());
-                    panel.getMandelbrot().setMaxIter(locationPanel.getIterations());
-                    panel.startDraw();
-                }
-            } catch (Exception ex) {
-                throw new RuntimeException(ex);
-            }
-        });
-
-        JButton storeSeqBtn = new JButton("保存图像序列");
-        storeSeqBtn.addActionListener(e -> {
-            try {
-                JFileChooser fileChooser = new JFileChooser();
-                fileChooser.setDialogTitle("保存图像");
-                fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-
-                int userSelection = fileChooser.showSaveDialog(null);
-                if (userSelection == JFileChooser.APPROVE_OPTION) {
-                    File fileToSave = fileChooser.getSelectedFile();
-                    storeImageSeq(fileToSave);
-                }
-            } catch (Exception ex) {
-                throw new RuntimeException(ex);
-            }
-        });
+        JButton locationButton = createLocationBtn();
+        JButton storeSeqBtn = createStoreSeqBtn();
 
 
-        toolBar.add(saveButton);
+        toolBar.add(saveBtn);
+        toolBar.add(loadBtn);
+        toolBar.add(saveImgBtn);
         toolBar.add(resetButton);
         toolBar.add(increaseIterationsButton);
         toolBar.add(locationButton);
@@ -145,6 +98,130 @@ public class MandelbrotApp extends JFrame {
             }
         });
         drawThread.start();
+    }
+
+    private JButton createStoreSeqBtn() {
+        JButton storeSeqBtn = new JButton("保存图像序列");
+        storeSeqBtn.addActionListener(e -> {
+            try {
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setDialogTitle("保存图像");
+                fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+
+                int userSelection = fileChooser.showSaveDialog(null);
+                if (userSelection == JFileChooser.APPROVE_OPTION) {
+                    File fileToSave = fileChooser.getSelectedFile();
+                    storeImageSeq(fileToSave);
+                }
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        return storeSeqBtn;
+    }
+
+    private JButton createLocationBtn() {
+        JButton locationButton = new JButton("位置");
+        locationButton.addActionListener(e -> {
+            try {
+                LocationPanel locationPanel = new LocationPanel()
+                        .setPos(panel.getMandelbrot().getCenter())
+                        .setScale(panel.getMandelbrot().getScale())
+                        .setIterations(panel.getMandelbrot().getMaxIter());
+                int result = JOptionPane.showConfirmDialog(null, locationPanel, "位置",
+                        JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+                if (result == JOptionPane.OK_OPTION) {
+                    panel.getMandelbrot().gotoLocation(locationPanel.getPos(), locationPanel.getScale());
+                    panel.getMandelbrot().setMaxIter(locationPanel.getIterations());
+                    panel.startDraw();
+                }
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        return locationButton;
+    }
+
+    private JButton createSaveImgBtn() {
+        JButton saveImgBtn = new JButton("保存图像");
+
+        saveImgBtn.addActionListener(e -> {
+            // 弹出文件选择对话框
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("保存图像");
+            fileChooser.setFileFilter(new FileNameExtensionFilter("PNG files", "png"));
+
+            int userSelection = fileChooser.showSaveDialog(null);
+            if (userSelection == JFileChooser.APPROVE_OPTION) {
+                File fileToSave = fileChooser.getSelectedFile();
+                if (!fileToSave.getName().endsWith(".png"))
+                    fileToSave = new File(fileToSave.getAbsolutePath() + ".png");
+                try {
+                    // 保存图像为PNG文件
+                    ImageIO.write(panel.getImage(), "png", fileToSave);
+                    JOptionPane.showMessageDialog(null, "图像已保存为 " + fileToSave.getAbsolutePath());
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                    JOptionPane.showMessageDialog(null, "保存图像时出错！");
+                }
+            }
+        });
+        return saveImgBtn;
+    }
+
+    private JButton createLoadBtn() {
+        JButton loadBtn = new JButton("加载");
+
+        loadBtn.addActionListener(e -> {
+            // 弹出文件选择对话框
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("加载");
+            fileChooser.setFileFilter(new FileNameExtensionFilter("MapleMandel Parameter", "mpr"));
+
+            int userSelection = fileChooser.showOpenDialog(null);
+            if (userSelection == JFileChooser.APPROVE_OPTION) {
+                File fileToSave = fileChooser.getSelectedFile();
+                try {
+                    InputStream is = new GZIPInputStream(new FileInputStream(fileToSave));
+                    panel.getMandelbrot().loadParameter(Parameter.load(is));
+                    is.close();
+                    JOptionPane.showMessageDialog(null, "加载成功");
+                    panel.startDraw();
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                    JOptionPane.showMessageDialog(null, "加载出错");
+                }
+            }
+        });
+        return loadBtn;
+    }
+
+    private JButton createSaveBtn() {
+        JButton saveBtn = new JButton("保存");
+
+        saveBtn.addActionListener(e -> {
+            // 弹出文件选择对话框
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("保存");
+            fileChooser.setFileFilter(new FileNameExtensionFilter("MapleMandel Parameter", "mpr"));
+
+            int userSelection = fileChooser.showSaveDialog(null);
+            if (userSelection == JFileChooser.APPROVE_OPTION) {
+                File fileToSave = fileChooser.getSelectedFile();
+                if (!fileToSave.getName().endsWith(".mpr"))
+                    fileToSave = new File(fileToSave.getAbsolutePath() + ".mpr");
+                try {
+                    OutputStream os = new GZIPOutputStream(new FileOutputStream(fileToSave));
+                    panel.getMandelbrot().getParameter().save(os);
+                    os.close();
+                    JOptionPane.showMessageDialog(null, "保存成功");
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                    JOptionPane.showMessageDialog(null, "保存出错");
+                }
+            }
+        });
+        return saveBtn;
     }
 
     private void update(Mandelbrot mandelbrot) {

@@ -67,7 +67,7 @@ public class Mandelbrot {
     }
 
     public void zoomIn() {
-        setScale(scale /2);
+        setScale(scale / 2);
         calcRef = true;
     }
 
@@ -276,6 +276,16 @@ public class Mandelbrot {
     public MandelbrotStats getStats() {
         return stats;
     }
+
+    public Parameter getParameter() {
+        return new Parameter(center, scale, maxIter);
+    }
+
+    public void loadParameter(Parameter p) {
+        gotoLocation(p.center, p.scale);
+        setMaxIter(p.iterations);
+    }
+
 
     static class MandelbrotStats {
         protected final int totalPixels;

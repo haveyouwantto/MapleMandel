@@ -4,8 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="optimize locationpanel">
+    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="fix zoomout image">
+      <change afterPath="$PROJECT_DIR$/src/hywt/maplemandel/Parameter.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/Mandelbrot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/Mandelbrot.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/MandelbrotApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/MandelbrotApp.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -158,7 +160,15 @@
       <option name="project" value="LOCAL" />
       <updated>1722007469158</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="fix zoomout image">
+      <option name="closed" value="true" />
+      <created>1722010009792</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1722010009792</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -172,6 +182,7 @@
     <MESSAGE value="fix zoom conflict" />
     <MESSAGE value="add store image sequence" />
     <MESSAGE value="optimize locationpanel" />
-    <option name="LAST_COMMIT_MESSAGE" value="optimize locationpanel" />
+    <MESSAGE value="fix zoomout image" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix zoomout image" />
   </component>
 </project>
