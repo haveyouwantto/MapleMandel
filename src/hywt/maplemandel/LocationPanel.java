@@ -6,9 +6,9 @@ import java.math.BigDecimal;
 
 public class LocationPanel extends JPanel {
     private JTextArea reField;
-    private JTextArea magnField;
     private JTextArea imField;
-    private JTextArea iterField;
+    private JTextField magnField;
+    private JTextField iterField;
 
     public LocationPanel(){
         super();
@@ -23,9 +23,9 @@ public class LocationPanel extends JPanel {
 
 
         JLabel magnLabel = new JLabel("Magnification");
-        magnField = new JTextArea("5.070602e+30");
-        JLabel iterLabel = new JLabel("Iter");
-        iterField = new JTextArea("1024");
+        magnField = new JTextField("5.070602e+30");
+        JLabel iterLabel = new JLabel("Iterations");
+        iterField = new JTextField("1024");
 
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -33,16 +33,21 @@ public class LocationPanel extends JPanel {
         panel.add(reField);
         panel.add(imLabel);
         panel.add(imField);
-        panel.add(magnLabel);
-        panel.add(magnField);
-        panel.add(iterLabel);
-        panel.add(iterField);
+
+        JPanel innerPanel = new JPanel();
+        innerPanel.setLayout(new GridLayout());
+
+        innerPanel.add(magnLabel);
+        innerPanel.add(magnField);
+        innerPanel.add(iterLabel);
+        innerPanel.add(iterField);
+        panel.add(innerPanel);
         JScrollPane scrollPane = new JScrollPane();
         scrollPane.getViewport().add(panel);
 
         add(scrollPane, BorderLayout.CENTER);
 
-        setPreferredSize(new Dimension(360,640));
+        setPreferredSize(new Dimension(500,500));
     }
 
     public DeepComplex getPos(){
