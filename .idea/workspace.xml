@@ -4,9 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="add store image sequence">
+    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="optimize locationpanel">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/LocationPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/LocationPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/MandelbrotApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/MandelbrotApp.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -150,7 +150,15 @@
       <option name="project" value="LOCAL" />
       <updated>1721932921769</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="optimize locationpanel">
+      <option name="closed" value="true" />
+      <created>1722007469158</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1722007469158</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -163,6 +171,7 @@
     <MESSAGE value="add bottom label updating" />
     <MESSAGE value="fix zoom conflict" />
     <MESSAGE value="add store image sequence" />
-    <option name="LAST_COMMIT_MESSAGE" value="add store image sequence" />
+    <MESSAGE value="optimize locationpanel" />
+    <option name="LAST_COMMIT_MESSAGE" value="optimize locationpanel" />
   </component>
 </project>

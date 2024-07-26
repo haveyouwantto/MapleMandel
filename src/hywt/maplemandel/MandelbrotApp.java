@@ -8,7 +8,6 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.concurrent.Callable;
 
 public class MandelbrotApp extends JFrame {
@@ -62,13 +61,13 @@ public class MandelbrotApp extends JFrame {
             update(mandelbrot);
             return null;
         });
-        panel.update();
+        panel.startDraw();
 
         JButton resetButton = new JButton("重置");
         resetButton.addActionListener(e -> {
             try {
                 panel.getMandelbrot().gotoLocation(new DeepComplex(0, 0), 4);
-                panel.update();
+                panel.startDraw();
                 panel.repaint();
             } catch (Exception ex) {
                 throw new RuntimeException(ex);
@@ -79,7 +78,7 @@ public class MandelbrotApp extends JFrame {
         increaseIterationsButton.addActionListener(e -> {
             try {
                 panel.getMandelbrot().setMaxIter(panel.getMandelbrot().getMaxIter() * 2);
-                panel.update();
+                panel.startDraw();
                 panel.repaint();
             } catch (Exception ex) {
                 throw new RuntimeException(ex);
@@ -98,7 +97,7 @@ public class MandelbrotApp extends JFrame {
                 if (result == JOptionPane.OK_OPTION) {
                     panel.getMandelbrot().gotoLocation(locationPanel.getPos(), locationPanel.getScale());
                     panel.getMandelbrot().setMaxIter(locationPanel.getIterations());
-                    panel.update();
+                    panel.startDraw();
                 }
             } catch (Exception ex) {
                 throw new RuntimeException(ex);
@@ -114,13 +113,8 @@ public class MandelbrotApp extends JFrame {
 
                 int userSelection = fileChooser.showSaveDialog(null);
                 if (userSelection == JFileChooser.APPROVE_OPTION) {
-                    try {
-                        File fileToSave = fileChooser.getSelectedFile();
-                        storeImageSeq(fileToSave);
-                    } catch (IOException ioException) {
-                        ioException.printStackTrace();
-                        JOptionPane.showMessageDialog(null, "保存图像时出错！");
-                    }
+                    File fileToSave = fileChooser.getSelectedFile();
+                    storeImageSeq(fileToSave);
                 }
             } catch (Exception ex) {
                 throw new RuntimeException(ex);
@@ -162,24 +156,31 @@ public class MandelbrotApp extends JFrame {
         label.setText(String.format("%.1f%%  Ref: %.1f%%  Zoom: %.2e  It: %d  Guessed: %.0f%%", percent * 100, ref * 100, 4 / mandelbrot.getScale(), mandelbrot.getMaxIter(), guessed * 100));
     }
 
-    public void storeImageSeq(File dir) throws Exception {
-        panel.getMandelbrot().zoomIn();
-        storeImageSeq(dir, 0);
+    public void storeImageSeq(File dir) {
+        new Thread(() -> {
+            int ord = 0;
+            panel.setEnabled(false);
+            Mandelbrot mandelbrot = panel.getMandelbrot();
+            try {
+                while (true) {
+                    panel.startDrawSync();
+                    BufferedImage img = panel.getImage();
+                    ImageIO.write(img, "png", new File(dir, String.format("%05d_%.5g.png", ord, 4 / mandelbrot.getScale())));
+                    if (mandelbrot.getScale() > 10) {
+                        break;
+                    }
+                    mandelbrot.zoomOut();
+                    ord++;
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            } finally {
+                panel.setEnabled(true);
+            }
+
+        }).start();
     }
 
-    private void storeImageSeq(File dir, int ord) throws Exception {
-        Mandelbrot mandelbrot = panel.getMandelbrot();
-        mandelbrot.zoomOut();
-        panel.setOnComplete(() -> {
-            BufferedImage img = panel.getImage();
-            ImageIO.write(img, "png", new File(dir, String.format("%05d_%.5g.png", ord, 4 / mandelbrot.getScale())));
-            if (mandelbrot.getScale() < 10) {
-                storeImageSeq(dir, ord + 1);
-            }
-            return null;
-        });
-        panel.update();
-    }
 }
 
 class DrawingPanel extends JPanel {
@@ -213,7 +214,7 @@ class DrawingPanel extends JPanel {
                         mandelbrot.zoomOut(originalX, originalY);
                     }
                     try {
-                        update();
+                        startDraw();
                     } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
@@ -259,17 +260,21 @@ class DrawingPanel extends JPanel {
         return image;
     }
 
-    public void update() throws Exception {
+    public void startDraw() {
         new Thread(() -> {
             try {
-                mandelbrot.cancel();
-                mandelbrot.draw(image);
-                repaint();
-                if (onComplete != null) onComplete.call();
+                startDrawSync();
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }).start();
+    }
+
+    public void startDrawSync() throws Exception {
+        mandelbrot.cancel();
+        mandelbrot.draw(image);
+        repaint();
+        if (onComplete != null) onComplete.call();
     }
 
     public Mandelbrot getMandelbrot() {
