@@ -240,6 +240,7 @@ public class MandelbrotApp extends JFrame {
             int ord = 0;
             panel.setEnabled(false);
             Mandelbrot mandelbrot = panel.getMandelbrot();
+            mandelbrot.cancel();
             try {
                 OutputStream os = new GZIPOutputStream(new FileOutputStream(new File(dir, "meta.mpr")));
                 mandelbrot.getParameter().save(os);
@@ -247,10 +248,11 @@ public class MandelbrotApp extends JFrame {
                 while (true) {
                     panel.startDrawSync();
                     BufferedImage img = panel.getImage();
-                    ImageIO.write(img, "png", new File(dir, String.format("%05d_%.5g.png", ord, new FloatExp(4).div(mandelbrot.getScale()))));
+                    ImageIO.write(img, "png", new File(dir, String.format("%05d_%s.png", ord, new FloatExp(4).div(mandelbrot.getScale()))));
                     if (mandelbrot.getScale().compareTo(new FloatExp(10)) > 0) {
                         break;
                     }
+                    mandelbrot.setMaxIter(Math.max(256,mandelbrot.getStats().approx.get()*50));
                     mandelbrot.zoomOut();
                     ord++;
                 }

@@ -4,8 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="check if approximated scale &lt; -320">
+    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="add save meta when rendering zoom out seq">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/Mandelbrot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/Mandelbrot.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/MandelbrotApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/MandelbrotApp.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -32,17 +33,17 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "master",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "I:/项目/Shao-s-Beautiful-World",
-    "应用程序.Main.executor": "Run",
-    "应用程序.MandelbrotApp.executor": "Run"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;I:/项目/Shao-s-Beautiful-World&quot;,
+    &quot;应用程序.Main.executor&quot;: &quot;Run&quot;,
+    &quot;应用程序.MandelbrotApp.executor&quot;: &quot;Run&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveInnerDialog.RECENTS_KEY">
       <recent name="hywt.maplemandel" />
@@ -218,7 +219,15 @@
       <option name="project" value="LOCAL" />
       <updated>1722104462724</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="add save meta when rendering zoom out seq">
+      <option name="closed" value="true" />
+      <created>1722104812826</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1722104812826</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -239,6 +248,7 @@
     <MESSAGE value="8.2" />
     <MESSAGE value="fix floatexp add/sub" />
     <MESSAGE value="check if approximated scale &lt; -320" />
-    <option name="LAST_COMMIT_MESSAGE" value="check if approximated scale &lt; -320" />
+    <MESSAGE value="add save meta when rendering zoom out seq" />
+    <option name="LAST_COMMIT_MESSAGE" value="add save meta when rendering zoom out seq" />
   </component>
 </project>

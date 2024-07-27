@@ -239,7 +239,7 @@ public class Mandelbrot {
             if (scale.compareTo(new FloatExp(1, -320)) > 0) {
                 iter = getPTIter(approx.toComplex(), c.toComplex(), refComplex, coefficient.getIterationCount() + 1);
             } else {
-                if (approx.getRe().scale() < -320 || approx.getIm().scale() < -320)
+                if (approx.getRe().scale() < -162 || approx.getIm().scale() < -162)
                     iter = getPTIterFloatExp(approx, c, reference, coefficient.getIterationCount() + 1);
                 else
                     iter = getPTIter(approx.toComplex(), c.toComplex(), refComplex, coefficient.getIterationCount() + 1);
@@ -343,7 +343,7 @@ public class Mandelbrot {
                     double error = Math.abs((approx.getRe().div(v2.getRe()).abs().add(approx.getIm().div(v2.getIm()).abs()))
                             .sub(new FloatExp(2)).doubleValue());
 //                    if(i==0)System.out.println(v2+" "+ approx+" "+error);
-                    if (error > 1e-4 || Double.isNaN(error)) {
+                    if (error > 1e-5 || Z.add(v2).abs().doubleValue()>4|| Double.isNaN(error)) {
                         coeff.undo();
                         coeff.setIterationCount(n - 1);
                         return coeff;
@@ -421,7 +421,7 @@ public class Mandelbrot {
             FloatExpComplex Z2 = reference.get(refIter);
             FloatExpComplex val = Z2.add(delta);// 合并参考与delta
 
-            if (val.abs().compareTo(new FloatExp(4)) > 0) {
+            if (val.abs().doubleValue() > 4) {
                 return iter;
             }  // 逃逸检测
             if (val.abs().compareTo(delta.abs()) < 0 || refIter == reference.size() - 1) { // 检测是否需要变基
