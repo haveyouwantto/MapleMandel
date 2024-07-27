@@ -48,6 +48,7 @@ public class FloatExp implements Comparable<FloatExp> {
 
     public FloatExp add(FloatExp other) {
         if (other.base == 0) return this;
+        else if (base == 0) return other;
         int expDiff = other.exp - this.exp;
         if (expDiff == 0) {
             return new FloatExp(this.base + other.base, this.exp);
@@ -60,6 +61,7 @@ public class FloatExp implements Comparable<FloatExp> {
 
     public FloatExp sub(FloatExp other) {
         if (other.base == 0) return this;
+        else if (base == 0) return other.rev();
         int expDiff = other.exp - this.exp;
         if (expDiff == 0) {
             return new FloatExp(this.base - other.base, this.exp);
@@ -135,8 +137,11 @@ public class FloatExp implements Comparable<FloatExp> {
 
         // Normalize the number
         int scale = num.scale();
-        BigDecimal normalized = num.movePointRight(scale).stripTrailingZeros();
-        int exponent = -scale + normalized.scale();
+        int precision = num.precision();
+        int exponent = precision - scale - 1;
+
+        // Normalize the value to [1, 10)
+        BigDecimal normalized = num.movePointLeft(exponent);
         return new FloatExp(normalized.doubleValue(), exponent);
     }
 

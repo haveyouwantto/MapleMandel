@@ -22,7 +22,8 @@ public class Mandelbrot {
     // 创建线程池
     ExecutorService executor;
     private List<Future<?>> futures;
-    private List<Complex> reference;
+    private List<FloatExpComplex> reference;
+    private List<Complex> refComplex;
     private SeriesCoefficient coefficient;
     private boolean calcRef;
 
@@ -44,22 +45,22 @@ public class Mandelbrot {
     }
 
     public FloatExpComplex getDelta(int x, int y) {
-        double deltaX = (x - width / 2.0) / width ;
+        double deltaX = (x - width / 2.0) / width;
         double deltaY = (height / 2.0 - y) / height;
         return new FloatExpComplex(scale.mul(deltaX), scale.mul(deltaY));
     }
 
     public void zoomIn(int x, int y) {
         FloatExpComplex delta = getDelta(x, y);
-        center = center.add(delta.toDeepComplex());
         setScale(scale.div(4));
+        center = center.add(delta.toDeepComplex());
         calcRef = true;
     }
 
     public void zoomOut(int x, int y) {
         FloatExpComplex delta = getDelta(x, y);
-        center = center.add(delta.toDeepComplex());
         setScale(scale.mul(4));
+        center = center.add(delta.toDeepComplex());
         calcRef = true;
     }
 
@@ -121,20 +122,18 @@ public class Mandelbrot {
         if (calcRef) {
             stats.reset();
             reference = getReference(center);
-
-            System.out.println(coefficient);
+            refComplex = reference.stream().map(FloatExpComplex::toComplex).toList();
         } else {
             stats.refIter.set(reference.size());
         }
 
-        List<FloatExpComplex> fp = reference.stream().map(Complex::toFloatExp).toList();
-
-        coefficient = getSeriesCoefficient(fp, Arrays.asList(
+        coefficient = getSeriesCoefficient(reference, Arrays.asList(
                 getDelta(0, 0),
                 getDelta(0, height - 1),
                 getDelta(width - 1, 0),
                 getDelta(width - 1, height - 1)
         ));
+        System.out.println(coefficient);
 
         // 先进行间隔计算
         for (int x = 0; x < width; x += 2) {
@@ -237,9 +236,17 @@ public class Mandelbrot {
         int iter;
         if (coefficient.getIterationCount() > 2) {
             FloatExpComplex approx = approximate(coefficient, c);
-            iter = getPTIter(approx.toComplex(), c.toComplex(), reference, coefficient.getIterationCount() + 1);
+            if (scale.compareTo(new FloatExp(1, -315)) > 0) {
+                iter = getPTIter(approx.toComplex(), c.toComplex(), refComplex, coefficient.getIterationCount() + 1);
+            } else {
+                iter = getPTIterFloatExp(approx, c, reference, coefficient.getIterationCount() + 1);
+            }
         } else {
-            iter = getPTIter(c.toComplex(), reference);
+            if (scale.compareTo(new FloatExp(1, -315)) > 0) {
+                iter = getPTIter(c.toComplex(), refComplex);
+            } else {
+                iter = getPTIterFloatExp(c, c, reference, 0);
+            }
         }
         iterations[x][y] = iter;
 
@@ -300,8 +307,8 @@ public class Mandelbrot {
 
     private static final BigDecimal ESCAPE_RADIUS = new BigDecimal(10000);
 
-    public List<Complex> getReference(DeepComplex c) {
-        List<Complex> referencePoints = new ArrayList<>();
+    public List<FloatExpComplex> getReference(DeepComplex c) {
+        List<FloatExpComplex> referencePoints = new ArrayList<>();
         int precision = -scale.scale() + 10;
         DeepComplex z = new DeepComplex(0, 0).setPrecision(precision);
 
@@ -310,7 +317,7 @@ public class Mandelbrot {
                 break;
             }
 
-            referencePoints.add(z.toComplex());
+            referencePoints.add(z.toFloatExp());
             z = z.mul(z).add(c);
             stats.refIter.incrementAndGet();
         }
@@ -332,7 +339,8 @@ public class Mandelbrot {
                     FloatExpComplex approx = approximate(coeff, validation.get(i));
                     double error = Math.abs((approx.getRe().div(v2.getRe()).abs().add(approx.getIm().div(v2.getIm()).abs()))
                             .sub(new FloatExp(2)).doubleValue());
-                    if (error > 1e-4) {
+//                    if(i==0)System.out.println(v2+" "+ approx+" "+error);
+                    if (error > 1e-4 || Double.isNaN(error)) {
                         coeff.undo();
                         coeff.setIterationCount(n - 1);
                         return coeff;
@@ -341,7 +349,7 @@ public class Mandelbrot {
                 }
                 stats.approx.incrementAndGet();
             }
-        } catch (ArithmeticException e){
+        } catch (ArithmeticException e) {
 
         }
         return new SeriesCoefficient(4);
@@ -410,7 +418,7 @@ public class Mandelbrot {
             FloatExpComplex Z2 = reference.get(refIter);
             FloatExpComplex val = Z2.add(delta);// 合并参考与delta
 
-            if (val.abs().doubleValue() > 2) return iter;  // 逃逸检测
+            if (val.abs().compareTo(new FloatExp(4)) > 0) return iter;  // 逃逸检测
             if (val.abs().compareTo(delta.abs()) < 0 || refIter == reference.size() - 1) { // 检测是否需要变基
                 delta = val;
                 refIter = 0;

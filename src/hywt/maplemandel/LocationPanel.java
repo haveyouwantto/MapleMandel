@@ -68,7 +68,7 @@ public class LocationPanel extends JPanel {
     }
 
     public LocationPanel setScale(FloatExp scale){
-        magnField.setText(scale.toString());
+        magnField.setText(new FloatExp(4).div(scale).toString());
         return this;
     }
 
