@@ -63,12 +63,12 @@ public class LocationPanel extends JPanel {
         return this;
     }
 
-    public double getScale() {
-        return 4/Double.parseDouble(magnField.getText());
+    public FloatExp getScale() {
+        return new FloatExp(4).div(FloatExp.parseFloatExp(magnField.getText()));
     }
 
-    public LocationPanel setScale(double scale){
-        magnField.setText(String.valueOf(4/scale));
+    public LocationPanel setScale(FloatExp scale){
+        magnField.setText(scale.toString());
         return this;
     }
 

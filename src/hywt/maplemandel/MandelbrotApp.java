@@ -50,7 +50,7 @@ public class MandelbrotApp extends JFrame {
         JButton resetButton = new JButton("重置");
         resetButton.addActionListener(e -> {
             try {
-                panel.getMandelbrot().gotoLocation(new DeepComplex(0, 0), 4);
+                panel.getMandelbrot().gotoLocation(new DeepComplex(0, 0), new FloatExp(4));
                 panel.getMandelbrot().setMaxIter(256);
                 panel.startDraw();
                 panel.repaint();
@@ -232,7 +232,7 @@ public class MandelbrotApp extends JFrame {
         double ref = (double) stats.refIter.get() / mandelbrot.getMaxIter();
         double approx = (double) stats.approx.get() / mandelbrot.getMaxIter();
         double percent = (double) stats.drawn.get() / stats.totalPixels;
-        label.setText(String.format("%.1f%%  Ref: %.1f%%  Approx: %.1f%%  Guessed: %.1f%%  Zoom: %.2e  It: %d  ", percent * 100, ref * 100, approx* 100, guessed * 100, 4 / mandelbrot.getScale(), mandelbrot.getMaxIter()));
+        label.setText(String.format("%.1f%%  Ref: %.1f%%  Approx: %.1f%%  Guessed: %.1f%%  Zoom: %s  It: %d  ", percent * 100, ref * 100, approx * 100, guessed * 100, new FloatExp(4).div(mandelbrot.getScale()), mandelbrot.getMaxIter()));
     }
 
     public void storeImageSeq(File dir) {
@@ -244,8 +244,8 @@ public class MandelbrotApp extends JFrame {
                 while (true) {
                     panel.startDrawSync();
                     BufferedImage img = panel.getImage();
-                    ImageIO.write(img, "png", new File(dir, String.format("%05d_%.5g.png", ord, 4 / mandelbrot.getScale())));
-                    if (mandelbrot.getScale() > 10) {
+                    ImageIO.write(img, "png", new File(dir, String.format("%05d_%.5g.png", ord, new FloatExp(4).div(mandelbrot.getScale()))));
+                    if (mandelbrot.getScale().compareTo(new FloatExp(10)) > 0) {
                         break;
                     }
                     mandelbrot.zoomOut();

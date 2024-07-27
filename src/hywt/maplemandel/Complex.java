@@ -48,4 +48,11 @@ public class Complex {
     public String toString() {
         return String.format("%g%+gi",re,im);
     }
+
+    public FloatExpComplex toFloatExp() {
+        return new FloatExpComplex(
+                FloatExp.doubleToFloatExp(re),
+                FloatExp.doubleToFloatExp(im)
+        );
+    }
 }

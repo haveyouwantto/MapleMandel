@@ -10,7 +10,7 @@ import java.util.concurrent.*;
 public class Mandelbrot {
 
     private DeepComplex center;
-    private double scale;
+    private FloatExp scale;
     private int maxIter;
     private int[][] iterations;
 
@@ -28,7 +28,7 @@ public class Mandelbrot {
 
     public Mandelbrot(int width, int height) {
         this.center = new DeepComplex(BigDecimal.ZERO, BigDecimal.ZERO);
-        this.scale = 4;
+        this.scale = new FloatExp(4);
         this.maxIter = 256;
         this.iterations = new int[width][height];
         this.width = width;
@@ -43,37 +43,37 @@ public class Mandelbrot {
         calcRef = true;
     }
 
-    public Complex getDelta(int x, int y) {
-        double deltaX = (x - width / 2.0) / width * scale;
-        double deltaY = (y - height / 2.0) / height * scale;
-        return new Complex(deltaX, deltaY);
+    public FloatExpComplex getDelta(int x, int y) {
+        double deltaX = (x - width / 2.0) / width ;
+        double deltaY = (height / 2.0 - y) / height;
+        return new FloatExpComplex(scale.mul(deltaX), scale.mul(deltaY));
     }
 
     public void zoomIn(int x, int y) {
-        Complex delta = getDelta(x, y);
-        center = center.add(delta);
-        setScale(scale / 4);
+        FloatExpComplex delta = getDelta(x, y);
+        center = center.add(delta.toDeepComplex());
+        setScale(scale.div(4));
         calcRef = true;
     }
 
     public void zoomOut(int x, int y) {
-        Complex delta = getDelta(x, y);
-        center = center.add(delta);
-        setScale(scale * 4);
+        FloatExpComplex delta = getDelta(x, y);
+        center = center.add(delta.toDeepComplex());
+        setScale(scale.mul(4));
         calcRef = true;
     }
 
     public void zoomIn() {
-        setScale(scale / 2);
+        setScale(scale.div(2));
         calcRef = true;
     }
 
     public void zoomOut() {
-        setScale(scale * 2);
+        setScale(scale.mul(2));
         calcRef = false;
     }
 
-    public void gotoLocation(DeepComplex c, double scale) {
+    public void gotoLocation(DeepComplex c, FloatExp scale) {
         this.center = c;
         setScale(scale);
         calcRef = true;
@@ -91,14 +91,14 @@ public class Mandelbrot {
         this.maxIter = maxIter;
     }
 
-    public double getScale() {
+    public FloatExp getScale() {
         return scale;
     }
 
-    public void setScale(double scale) {
+    public void setScale(FloatExp scale) {
         cancel();
         this.scale = scale;
-        this.center.setPrecision((int) (-Math.log10(scale) + 10));
+        this.center.setPrecision(-scale.scale() + 10);
     }
 
     public void cancel() {
@@ -127,7 +127,9 @@ public class Mandelbrot {
             stats.refIter.set(reference.size());
         }
 
-        coefficient = getSeriesCoefficient(reference, Arrays.asList(
+        List<FloatExpComplex> fp = reference.stream().map(Complex::toFloatExp).toList();
+
+        coefficient = getSeriesCoefficient(fp, Arrays.asList(
                 getDelta(0, 0),
                 getDelta(0, height - 1),
                 getDelta(width - 1, 0),
@@ -231,13 +233,13 @@ public class Mandelbrot {
     }
 
     public void calc(int x, int y, Graphics g, int w, int h) {
-        Complex c = getDelta(x, y);
+        FloatExpComplex c = getDelta(x, y);
         int iter;
         if (coefficient.getIterationCount() > 2) {
-            Complex approx = approximate(coefficient, c);
-            iter = getPTIter(approx, c, reference, coefficient.getIterationCount() + 1);
+            FloatExpComplex approx = approximate(coefficient, c);
+            iter = getPTIter(approx.toComplex(), c.toComplex(), reference, coefficient.getIterationCount() + 1);
         } else {
-            iter = getPTIter(c, reference);
+            iter = getPTIter(c.toComplex(), reference);
         }
         iterations[x][y] = iter;
 
@@ -300,7 +302,7 @@ public class Mandelbrot {
 
     public List<Complex> getReference(DeepComplex c) {
         List<Complex> referencePoints = new ArrayList<>();
-        int precision = (int) (-Math.log10(scale) + 10);
+        int precision = -scale.scale() + 10;
         DeepComplex z = new DeepComplex(0, 0).setPrecision(precision);
 
         for (int i = 0; i < this.maxIter; i++) {
@@ -315,38 +317,39 @@ public class Mandelbrot {
         return referencePoints;
     }
 
-    public SeriesCoefficient getSeriesCoefficient(List<Complex> reference, List<Complex> validation) {
-        SeriesCoefficient coeff = new SeriesCoefficient(4);
-        List<Complex> iterV = new ArrayList<>(validation);
-        System.out.println(reference);
-        for (int n = 0; n < reference.size(); n++) {
-            Complex Z = reference.get(n);
+    public SeriesCoefficient getSeriesCoefficient(List<FloatExpComplex> reference, List<FloatExpComplex> validation) {
+        SeriesCoefficient coeff = new SeriesCoefficient(10);
+        List<FloatExpComplex> iterV = new ArrayList<>(validation);
+        try {
+            for (int n = 0; n < reference.size(); n++) {
+                FloatExpComplex Z = reference.get(n);
 
-            coeff.iterate(Z);
-            System.out.println(coeff);
+                coeff.iterate(Z);
 
-            for (int i = 0; i < validation.size(); i++) {
-                Complex v = iterV.get(i);
-                Complex v2 = v.mul(Z).mul(2).add(v.mul(v)).add(validation.get(i));
-                Complex approx = approximate(coeff, validation.get(i));
-                double error = Math.abs(
-                        Math.abs(approx.getRe() / v2.getRe()) + Math.abs(approx.getIm() / v2.getIm()) - 2
-                );
-                if (error > 1e-4 || Double.isNaN(approx.getRe()) || Double.isNaN(approx.getIm())) {
-                    coeff.undo();
-                    coeff.setIterationCount(n - 1);
-                    return coeff;
+                for (int i = 0; i < validation.size(); i++) {
+                    FloatExpComplex v = iterV.get(i);
+                    FloatExpComplex v2 = v.mul(Z).mul(2).add(v.mul(v)).add(validation.get(i));
+                    FloatExpComplex approx = approximate(coeff, validation.get(i));
+                    double error = Math.abs((approx.getRe().div(v2.getRe()).abs().add(approx.getIm().div(v2.getIm()).abs()))
+                            .sub(new FloatExp(2)).doubleValue());
+                    if (error > 1e-4) {
+                        coeff.undo();
+                        coeff.setIterationCount(n - 1);
+                        return coeff;
+                    }
+                    iterV.set(i, v2);
                 }
-                iterV.set(i, v2);
+                stats.approx.incrementAndGet();
             }
-            stats.approx.incrementAndGet();
+        } catch (ArithmeticException e){
+
         }
         return new SeriesCoefficient(4);
     }
 
-    public Complex approximate(SeriesCoefficient coeff, Complex c) {
-        Complex result = new Complex(0, 0);
-        Complex cn = c;
+    public FloatExpComplex approximate(SeriesCoefficient coeff, FloatExpComplex c) {
+        FloatExpComplex result = new FloatExpComplex(0, 0);
+        FloatExpComplex cn = c;
         for (int i = 0; i < coeff.getTerms(); i++) {
             result = result.add(coeff.getCoefficient(i).mul(cn));
             cn = cn.mul(c);
@@ -383,6 +386,33 @@ public class Mandelbrot {
             if (val < dRe * dRe + dIm * dIm || refIter == reference.size() - 1) { // 检测是否需要变基
                 dRe = valR;
                 dIm = valI;
+                refIter = 0;
+            }
+            iter++;
+        }
+        return iter;
+    }
+
+
+    public int getPTIterFloatExp(FloatExpComplex delta, FloatExpComplex origin, List<FloatExpComplex> reference, int start) {
+        FloatExpComplex tmp;
+
+        int iter = start;
+        int refIter = start;
+        while (iter < maxIter) {
+            FloatExpComplex Z = reference.get(refIter);
+
+            // 计算delta的影响
+            tmp = Z.mul(delta).mul(2).add(delta.mul(delta)).add(origin);
+            delta = tmp;
+            refIter++;
+
+            FloatExpComplex Z2 = reference.get(refIter);
+            FloatExpComplex val = Z2.add(delta);// 合并参考与delta
+
+            if (val.abs().doubleValue() > 2) return iter;  // 逃逸检测
+            if (val.abs().compareTo(delta.abs()) < 0 || refIter == reference.size() - 1) { // 检测是否需要变基
+                delta = val;
                 refIter = 0;
             }
             iter++;

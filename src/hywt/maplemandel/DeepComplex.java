@@ -86,4 +86,11 @@ public class DeepComplex {
     public MathContext getMc() {
         return mc;
     }
+
+    public FloatExpComplex toFloatExp() {
+        return new FloatExpComplex(
+                FloatExp.decimalToFloatExp(re),
+                FloatExp.decimalToFloatExp(im)
+        );
+    }
 }

@@ -8,10 +8,10 @@ import java.util.Properties;
 
 public class Parameter {
     public final DeepComplex center;
-    public final double scale;
+    public final FloatExp scale;
     public final int iterations;
 
-    public Parameter(DeepComplex center, double scale, int iterations) {
+    public Parameter(DeepComplex center, FloatExp scale, int iterations) {
         this.center = center;
         this.scale = scale;
         this.iterations = iterations;
@@ -35,7 +35,7 @@ public class Parameter {
                         new BigDecimal(prop.getProperty("real")),
                         new BigDecimal(prop.getProperty("imaginary"))
                 ),
-                Double.parseDouble(prop.getProperty("scale")),
+                FloatExp.parseFloatExp(prop.getProperty("scale")),
                 Integer.parseInt(prop.getProperty("iterations"))
         );
     }
