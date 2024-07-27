@@ -51,6 +51,7 @@ public class MandelbrotApp extends JFrame {
         resetButton.addActionListener(e -> {
             try {
                 panel.getMandelbrot().gotoLocation(new DeepComplex(0, 0), 4);
+                panel.getMandelbrot().setMaxIter(256);
                 panel.startDraw();
                 panel.repaint();
             } catch (Exception ex) {
@@ -226,11 +227,12 @@ public class MandelbrotApp extends JFrame {
 
     private void update(Mandelbrot mandelbrot) {
         panel.repaint();
-        Mandelbrot.MandelbrotStats stats = mandelbrot.getStats();
+        MandelbrotStats stats = mandelbrot.getStats();
         double guessed = (double) stats.guessed.get() / stats.totalPixels;
         double ref = (double) stats.refIter.get() / mandelbrot.getMaxIter();
+        double approx = (double) stats.approx.get() / mandelbrot.getMaxIter();
         double percent = (double) stats.drawn.get() / stats.totalPixels;
-        label.setText(String.format("%.1f%%  Ref: %.1f%%  Zoom: %.2e  It: %d  Guessed: %.0f%%", percent * 100, ref * 100, 4 / mandelbrot.getScale(), mandelbrot.getMaxIter(), guessed * 100));
+        label.setText(String.format("%.1f%%  Ref: %.1f%%  Approx: %.1f%%  Guessed: %.1f%%  Zoom: %.2e  It: %d  ", percent * 100, ref * 100, approx* 100, guessed * 100, 4 / mandelbrot.getScale(), mandelbrot.getMaxIter()));
     }
 
     public void storeImageSeq(File dir) {

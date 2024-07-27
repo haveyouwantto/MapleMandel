@@ -4,12 +4,8 @@ import java.awt.Graphics;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class Mandelbrot {
 
@@ -27,6 +23,7 @@ public class Mandelbrot {
     ExecutorService executor;
     private List<Future<?>> futures;
     private List<Complex> reference;
+    private SeriesCoefficient coefficient;
     private boolean calcRef;
 
     public Mandelbrot(int width, int height) {
@@ -123,7 +120,21 @@ public class Mandelbrot {
         Graphics g = image.getGraphics();
         g.clearRect(0, 0, width, height);
 
-        if (calcRef) reference = getReference(center);
+        if (calcRef) {
+            stats.reset();
+            reference = getReference(center);
+
+            System.out.println(coefficient);
+        } else {
+            stats.refIter.set(reference.size());
+        }
+
+        coefficient = getSeriesCoefficient(reference, Arrays.asList(
+                getDelta(0, 0),
+                getDelta(0, height - 1),
+                getDelta(width - 1, 0),
+                getDelta(width - 1, height - 1)
+        ));
 
         // 先进行间隔计算
         for (int x = 0; x < width; x += 2) {
@@ -131,14 +142,7 @@ public class Mandelbrot {
             futures.add(executor.submit(() -> {
                 Graphics finalG = image.getGraphics();
                 for (int y = 0; y < height; y += 2) {
-                    Complex c = getDelta(finalX, y);
-                    int iter = getPTIter(c, reference);
-                    iterations[finalX][y] = iter;
-
-                    Color color = (iter == maxIter) ? Color.BLACK : Palette.getColor(iter);
-                    finalG.setColor(color);
-                    finalG.fillRect(finalX, y, 2, 2);
-                    stats.drawn.incrementAndGet();
+                    calc(finalX, y, finalG, 2, 2);
 //                    image.setRGB(finalX, y, color.getRGB());
                 }
             }));
@@ -175,13 +179,7 @@ public class Mandelbrot {
                         }
                     }
                     // 进行详细计算
-                    Complex c = getDelta(x, finalY);
-                    int iter = getPTIter(c, reference);
-                    iterations[x][finalY] = iter;
-                    Color color = (iter == maxIter) ? Color.BLACK : Palette.getColor(iter);
-                    finalG.setColor(color);
-                    finalG.fillRect(x, finalY, 1, 2);
-                    stats.drawn.incrementAndGet();
+                    calc(x, finalY, finalG, 1, 2);
                 }
             }));
         }
@@ -201,6 +199,7 @@ public class Mandelbrot {
         for (int y = 1; y < height; y += 2) {
             int finalY = y;
             futures.add(executor.submit(() -> {
+                Graphics finalG = image.getGraphics();
                 for (int x = 0; x < width; x++) {
                     if (x < width - 1 && finalY < height - 1) {
                         int top = iterations[x][finalY - 1];
@@ -215,12 +214,7 @@ public class Mandelbrot {
                         }
                     }
                     // 进行详细计算
-                    Complex c = getDelta(x, finalY);
-                    int iter = getPTIter(c, reference);
-                    iterations[x][finalY] = iter;
-                    Color color = (iter == maxIter) ? Color.BLACK : Palette.getColor(iter);
-                    image.setRGB(x, finalY, color.getRGB());
-                    stats.drawn.incrementAndGet();
+                    calc(x, finalY, finalG, 1, 1);
                 }
             }));
         }
@@ -236,6 +230,23 @@ public class Mandelbrot {
 
         drawing = false;
         calcRef = false;
+    }
+
+    public void calc(int x, int y, Graphics g, int w, int h) {
+        Complex c = getDelta(x, y);
+        int iter;
+        if (coefficient.getIterationCount() > 2) {
+            Complex approx = approximate(coefficient, c);
+            iter = getPTIter(approx, c, reference, coefficient.getIterationCount() + 1);
+        } else {
+            iter = getPTIter(c, reference);
+        }
+        iterations[x][y] = iter;
+
+        Color color = (iter == maxIter) ? Color.BLACK : Palette.getColor(iter);
+        g.setColor(color);
+        g.fillRect(x, y, w, h);
+        stats.drawn.incrementAndGet();
     }
 
 
@@ -287,34 +298,6 @@ public class Mandelbrot {
     }
 
 
-    static class MandelbrotStats {
-        protected final int totalPixels;
-        protected final AtomicInteger guessed;
-        protected final AtomicInteger refIter;
-        protected final AtomicInteger drawn;
-
-        MandelbrotStats(int totalPixels) {
-            this.totalPixels = totalPixels;
-            this.refIter = new AtomicInteger();
-            this.guessed = new AtomicInteger();
-            drawn = new AtomicInteger();
-        }
-
-        public int getTotalPixels() {
-            return totalPixels;
-        }
-
-        public AtomicInteger getGuessed() {
-            return guessed;
-        }
-
-        protected void reset() {
-            refIter.set(0);
-            guessed.set(0);
-            drawn.set(0);
-        }
-    }
-
     private static final BigDecimal ESCAPE_RADIUS = new BigDecimal(10000);
 
     public List<Complex> getReference(DeepComplex c) {
@@ -334,19 +317,68 @@ public class Mandelbrot {
         return referencePoints;
     }
 
-    public int getPTIter(Complex delta, List<Complex> reference) {
-        double dRe = 0;
-        double dIm = 0;
+    public SeriesCoefficient getSeriesCoefficient(List<Complex> reference, List<Complex> validation) {
+        SeriesCoefficient coeff = new SeriesCoefficient(4);
+        List<Complex> iterV = new ArrayList<>(validation);
+        for (int n = 0; n < reference.size(); n++) {
+            Complex Z = reference.get(n);
+            Complex A = coeff.getCoefficient(0), B = coeff.getCoefficient(1), C = coeff.getCoefficient(2), D = coeff.getCoefficient(3);
+
+            coeff.setCoefficient(0, A.mul(Z).mul(2).add(new Complex(1, 0)));
+            coeff.setCoefficient(1, B.mul(Z).mul(2).add(A.mul(A)));
+            coeff.setCoefficient(2, C.mul(Z).mul(2).add(A.mul(B).mul(2)));
+            coeff.setCoefficient(3, D.mul(Z).mul(2).add(A.mul(C).mul(2)).add(B.mul(B)));
+
+            for (int i = 0; i < validation.size(); i++) {
+                Complex v = iterV.get(i);
+                Complex v2 = v.mul(Z).mul(2).add(v.mul(v)).add(validation.get(i));
+                Complex approx = approximate(coeff, validation.get(i));
+
+                double error = Math.abs(
+                        Math.abs(approx.getRe() / v2.getRe()) + Math.abs(approx.getIm() / v2.getIm()) - 2
+                );
+                if (error > 1e-4 || Double.isNaN(approx.getRe()) || Double.isNaN(approx.getIm())) {
+                    coeff.setCoefficient(0, A);
+                    coeff.setCoefficient(1, B);
+                    coeff.setCoefficient(2, C);
+                    coeff.setCoefficient(3, D);
+                    coeff.setIterationCount(n - 1);
+                    return coeff;
+                }
+                iterV.set(i, v2);
+            }
+            stats.approx.incrementAndGet();
+        }
+        return new SeriesCoefficient(4);
+    }
+
+    public Complex approximate(SeriesCoefficient coeff, Complex c) {
+        Complex result = new Complex(0, 0);
+        Complex cn = c;
+        for (int i = 0; i < coeff.getTerms(); i++) {
+            result = result.add(coeff.getCoefficient(i).mul(cn));
+            cn = cn.mul(c);
+        }
+        return result;
+    }
+
+    public int getPTIter(Complex origin, List<Complex> reference) {
+        return getPTIter(new Complex(0, 0), origin, reference, 0);
+    }
+
+    public int getPTIter(Complex delta, Complex origin, List<Complex> reference, int start) {
+        double dRe = delta.getRe();
+        double dIm = delta.getIm();
         double tmp;
 
-        int iter = 0;
-        int refIter = 0;
+        int iter = start;
+        int refIter = start;
         while (iter < maxIter) {
             Complex Z = reference.get(refIter);
 
             // 计算delta的影响
-            tmp = 2 * (Z.getRe() * dRe - Z.getIm() * dIm) + (dRe * dRe - dIm * dIm) + delta.getRe();
-            dIm = 2 * (Z.getRe() * dIm + Z.getIm() * dRe + dRe * dIm) + delta.getIm();
+            tmp = 2 * (Z.getRe() * dRe - Z.getIm() * dIm) + (dRe * dRe - dIm * dIm) + origin.getRe();
+            dIm = 2 * (Z.getRe() * dIm + Z.getIm() * dRe + dRe * dIm) + origin.getIm();
             dRe = tmp;
             refIter++;
 
