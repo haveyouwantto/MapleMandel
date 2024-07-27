@@ -4,10 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="fix floatexp add/sub">
+    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="check if approximated scale &lt; -320">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/FloatExpComplex.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/FloatExpComplex.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/Mandelbrot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/Mandelbrot.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/MandelbrotApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/MandelbrotApp.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -211,7 +210,15 @@
       <option name="project" value="LOCAL" />
       <updated>1722102467659</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="check if approximated scale &lt; -320">
+      <option name="closed" value="true" />
+      <created>1722104462724</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1722104462724</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -231,6 +238,7 @@
     <MESSAGE value="generalize coeff computation" />
     <MESSAGE value="8.2" />
     <MESSAGE value="fix floatexp add/sub" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix floatexp add/sub" />
+    <MESSAGE value="check if approximated scale &lt; -320" />
+    <option name="LAST_COMMIT_MESSAGE" value="check if approximated scale &lt; -320" />
   </component>
 </project>
