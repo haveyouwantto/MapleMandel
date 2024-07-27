@@ -117,8 +117,6 @@ public class Mandelbrot {
         stats.reset();
         int width = image.getWidth();
         int height = image.getHeight();
-        Graphics g = image.getGraphics();
-        g.clearRect(0, 0, width, height);
 
         if (calcRef) {
             stats.reset();
@@ -320,28 +318,22 @@ public class Mandelbrot {
     public SeriesCoefficient getSeriesCoefficient(List<Complex> reference, List<Complex> validation) {
         SeriesCoefficient coeff = new SeriesCoefficient(4);
         List<Complex> iterV = new ArrayList<>(validation);
+        System.out.println(reference);
         for (int n = 0; n < reference.size(); n++) {
             Complex Z = reference.get(n);
-            Complex A = coeff.getCoefficient(0), B = coeff.getCoefficient(1), C = coeff.getCoefficient(2), D = coeff.getCoefficient(3);
 
-            coeff.setCoefficient(0, A.mul(Z).mul(2).add(new Complex(1, 0)));
-            coeff.setCoefficient(1, B.mul(Z).mul(2).add(A.mul(A)));
-            coeff.setCoefficient(2, C.mul(Z).mul(2).add(A.mul(B).mul(2)));
-            coeff.setCoefficient(3, D.mul(Z).mul(2).add(A.mul(C).mul(2)).add(B.mul(B)));
+            coeff.iterate(Z);
+            System.out.println(coeff);
 
             for (int i = 0; i < validation.size(); i++) {
                 Complex v = iterV.get(i);
                 Complex v2 = v.mul(Z).mul(2).add(v.mul(v)).add(validation.get(i));
                 Complex approx = approximate(coeff, validation.get(i));
-
                 double error = Math.abs(
                         Math.abs(approx.getRe() / v2.getRe()) + Math.abs(approx.getIm() / v2.getIm()) - 2
                 );
                 if (error > 1e-4 || Double.isNaN(approx.getRe()) || Double.isNaN(approx.getIm())) {
-                    coeff.setCoefficient(0, A);
-                    coeff.setCoefficient(1, B);
-                    coeff.setCoefficient(2, C);
-                    coeff.setCoefficient(3, D);
+                    coeff.undo();
                     coeff.setIterationCount(n - 1);
                     return coeff;
                 }
