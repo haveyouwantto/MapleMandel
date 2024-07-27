@@ -1,7 +1,5 @@
 package hywt.maplemandel;
 
-import java.math.BigDecimal;
-
 public class FloatExpComplex {
     private FloatExp re;
     private FloatExp im;
@@ -17,7 +15,7 @@ public class FloatExpComplex {
 
     public FloatExp abs() {
         // |z| = sqrt(re^2 + im^2)
-        return re.mul(re).add(im.mul(im)).sqrt();
+        return re.mul(re).add(im.mul(im));
     }
 
     public FloatExpComplex mul(FloatExpComplex other) {
