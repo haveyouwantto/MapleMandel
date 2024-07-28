@@ -50,11 +50,20 @@ public class Mandelbrot {
         return new FloatExpComplex(scale.mul(deltaX), scale.mul(deltaY));
     }
 
+    private void clear() {
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                iterations[x][y] = 0;
+            }
+        }
+    }
+
     public void zoomIn(int x, int y) {
         FloatExpComplex delta = getDelta(x, y);
         setScale(scale.div(4));
         center = center.add(delta.toDeepComplex());
         calcRef = true;
+        clear();
     }
 
     public void zoomOut(int x, int y) {
@@ -62,6 +71,7 @@ public class Mandelbrot {
         setScale(scale.mul(4));
         center = center.add(delta.toDeepComplex());
         calcRef = true;
+        clear();
     }
 
     public void zoomIn() {
@@ -74,6 +84,17 @@ public class Mandelbrot {
     }
 
     public void zoomOut(double scale) {
+        if (scale == 2) {
+            int[][] newMap = new int[width][height];
+            for (int x = 0; x < width; x += 2) {
+                for (int y = 0; y < height; y += 2) {
+                    newMap[width / 4 + x / 2 - 1][height / 4 + y / 2 - 1] = iterations[x][y];
+                }
+            }
+            iterations = newMap;
+        } else {
+            clear();
+        }
         setScale(this.scale.mul(scale));
         calcRef = false;
     }
@@ -82,6 +103,7 @@ public class Mandelbrot {
         this.center = c;
         setScale(scale);
         calcRef = true;
+        clear();
     }
 
     public DeepComplex getCenter() {
@@ -145,7 +167,7 @@ public class Mandelbrot {
             futures.add(executor.submit(() -> {
                 Graphics finalG = image.getGraphics();
                 for (int y = 0; y < height; y += 2) {
-                    calc(finalX, y, finalG, 2, 2);
+                    if (iterations[finalX][y] == 0) calc(finalX, y, finalG, 2, 2);
 //                    image.setRGB(finalX, y, color.getRGB());
                 }
             }));
@@ -173,7 +195,7 @@ public class Mandelbrot {
                         int right = iterations[x + 1][finalY];
                         if (left == right) {
                             iterations[x][finalY] = left;
-                            Color color = (left == maxIter) ? Color.BLACK : Palette.getColor(left);
+                            Color color = (left >= maxIter) ? Color.BLACK : Palette.getColor(left);
                             finalG.setColor(color);
                             finalG.fillRect(x, finalY, 1, 2);
                             stats.guessed.incrementAndGet();
@@ -182,7 +204,7 @@ public class Mandelbrot {
                         }
                     }
                     // 进行详细计算
-                    calc(x, finalY, finalG, 1, 2);
+                    if (iterations[x][finalY] == 0) calc(x, finalY, finalG, 1, 2);
                 }
             }));
         }
@@ -209,7 +231,7 @@ public class Mandelbrot {
                         int bottom = iterations[x][finalY + 1];
                         if (top == bottom) {
                             iterations[x][finalY] = top;
-                            Color color = (top == maxIter) ? Color.BLACK : Palette.getColor(top);
+                            Color color = (top >= maxIter) ? Color.BLACK : Palette.getColor(top);
                             image.setRGB(x, finalY, color.getRGB());
                             stats.guessed.incrementAndGet();
                             stats.drawn.incrementAndGet();
@@ -217,7 +239,7 @@ public class Mandelbrot {
                         }
                     }
                     // 进行详细计算
-                    calc(x, finalY, finalG, 1, 1);
+                    if (iterations[x][finalY] == 0) calc(x, finalY, finalG, 1, 1);
                 }
             }));
         }
@@ -233,6 +255,13 @@ public class Mandelbrot {
 
         drawing = false;
         calcRef = false;
+
+
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                image.setRGB(x, y, ((iterations[x][y] >= maxIter) ? Color.BLACK : Palette.getColor(iterations[x][y])).getRGB());
+            }
+        }
     }
 
     public void calc(int x, int y, Graphics g, int w, int h) {
@@ -257,7 +286,7 @@ public class Mandelbrot {
         }
         iterations[x][y] = iter;
 
-        Color color = (iter == maxIter) ? Color.BLACK : Palette.getColor(iter);
+        Color color = (iter >= maxIter) ? Color.BLACK : Palette.getColor(iter);
         g.setColor(color);
         g.fillRect(x, y, w, h);
         stats.drawn.incrementAndGet();
@@ -347,7 +376,7 @@ public class Mandelbrot {
                     double error = Math.abs((approx.getRe().div(v2.getRe()).abs().add(approx.getIm().div(v2.getIm()).abs()))
                             .sub(new FloatExp(2)).doubleValue());
 //                    if(i==0)System.out.println(v2+" "+ approx+" "+error);
-                    if (error > 1e-5 || Z.add(v2).abs().doubleValue()>4|| Double.isNaN(error)) {
+                    if (error > 1e-5 || Z.add(v2).abs().doubleValue() > 4 || Double.isNaN(error)) {
                         coeff.undo();
                         coeff.setIterationCount(n - 1);
                         return coeff;

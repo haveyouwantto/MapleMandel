@@ -92,7 +92,7 @@ public class MandelbrotApp extends JFrame {
                     if (mandelbrot.isDrawing()) {
                         update(mandelbrot);
                     }
-                    Thread.sleep(20);
+                    Thread.sleep(50);
                 }
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -252,7 +252,9 @@ public class MandelbrotApp extends JFrame {
                     if (mandelbrot.getScale().compareTo(new FloatExp(10)) > 0) {
                         break;
                     }
-                    mandelbrot.setMaxIter(Math.max(256,mandelbrot.getStats().approx.get()*50));
+                    int lastIt = mandelbrot.getMaxIter();
+                    int newIt = Math.max(256, mandelbrot.getStats().approx.get() * 25);
+                    if (newIt < lastIt) mandelbrot.setMaxIter(newIt);
                     mandelbrot.zoomOut();
                     ord++;
                 }
