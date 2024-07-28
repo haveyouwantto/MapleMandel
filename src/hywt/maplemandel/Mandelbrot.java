@@ -133,6 +133,7 @@ public class Mandelbrot {
             future.cancel(true);
         }
         futures.clear();
+        clear();
     }
 
     public boolean isDrawing() {
@@ -169,6 +170,7 @@ public class Mandelbrot {
                 for (int y = 0; y < height; y += 2) {
                     if (iterations[finalX][y] == 0) calc(finalX, y, finalG, 2, 2);
 //                    image.setRGB(finalX, y, color.getRGB());
+                    stats.drawn.incrementAndGet();
                 }
             }));
         }
@@ -190,21 +192,23 @@ public class Mandelbrot {
             futures.add(executor.submit(() -> {
                 Graphics finalG = image.getGraphics();
                 for (int x = 1; x < width; x += 2) {
-                    if (finalY < height - 1 && x < width - 1) {
-                        int left = iterations[x - 1][finalY];
-                        int right = iterations[x + 1][finalY];
-                        if (left == right) {
-                            iterations[x][finalY] = left;
-                            Color color = (left >= maxIter) ? Color.BLACK : Palette.getColor(left);
-                            finalG.setColor(color);
-                            finalG.fillRect(x, finalY, 1, 2);
-                            stats.guessed.incrementAndGet();
-                            stats.drawn.incrementAndGet();
-                            continue;
+                    if (iterations[x][finalY] == 0) {
+                        if (finalY < height - 1 && x < width - 1) {
+                            int left = iterations[x - 1][finalY];
+                            int right = iterations[x + 1][finalY];
+                            if (left == right) {
+                                iterations[x][finalY] = left;
+                                Color color = (left >= maxIter) ? Color.BLACK : Palette.getColor(left);
+                                finalG.setColor(color);
+                                finalG.fillRect(x, finalY, 1, 2);
+                                stats.guessed.incrementAndGet();
+                                continue;
+                            }
                         }
+                        // 进行详细计算
+                        calc(x, finalY, finalG, 1, 2);
                     }
-                    // 进行详细计算
-                    if (iterations[x][finalY] == 0) calc(x, finalY, finalG, 1, 2);
+                    stats.drawn.incrementAndGet();
                 }
             }));
         }
@@ -226,20 +230,22 @@ public class Mandelbrot {
             futures.add(executor.submit(() -> {
                 Graphics finalG = image.getGraphics();
                 for (int x = 0; x < width; x++) {
-                    if (x < width - 1 && finalY < height - 1) {
-                        int top = iterations[x][finalY - 1];
-                        int bottom = iterations[x][finalY + 1];
-                        if (top == bottom) {
-                            iterations[x][finalY] = top;
-                            Color color = (top >= maxIter) ? Color.BLACK : Palette.getColor(top);
-                            image.setRGB(x, finalY, color.getRGB());
-                            stats.guessed.incrementAndGet();
-                            stats.drawn.incrementAndGet();
-                            continue;
+                    if (iterations[x][finalY] == 0) {
+                        if (x < width - 1 && finalY < height - 1) {
+                            int top = iterations[x][finalY - 1];
+                            int bottom = iterations[x][finalY + 1];
+                            if (top == bottom) {
+                                iterations[x][finalY] = top;
+                                Color color = (top >= maxIter) ? Color.BLACK : Palette.getColor(top);
+                                image.setRGB(x, finalY, color.getRGB());
+                                stats.guessed.incrementAndGet();
+                                continue;
+                            }
                         }
+                        // 进行详细计算
+                        if (iterations[x][finalY] == 0) calc(x, finalY, finalG, 1, 1);
                     }
-                    // 进行详细计算
-                    if (iterations[x][finalY] == 0) calc(x, finalY, finalG, 1, 1);
+                    stats.drawn.incrementAndGet();
                 }
             }));
         }
@@ -289,7 +295,6 @@ public class Mandelbrot {
         Color color = (iter >= maxIter) ? Color.BLACK : Palette.getColor(iter);
         g.setColor(color);
         g.fillRect(x, y, w, h);
-        stats.drawn.incrementAndGet();
     }
 
 

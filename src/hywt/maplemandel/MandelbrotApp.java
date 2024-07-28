@@ -253,7 +253,7 @@ public class MandelbrotApp extends JFrame {
                         break;
                     }
                     int lastIt = mandelbrot.getMaxIter();
-                    int newIt = Math.max(256, mandelbrot.getStats().approx.get() * 25);
+                    int newIt = Math.max(2048, mandelbrot.getStats().approx.get() * 25);
                     if (newIt < lastIt) mandelbrot.setMaxIter(newIt);
                     mandelbrot.zoomOut();
                     ord++;
