@@ -46,6 +46,11 @@ public class FloatExp implements Comparable<FloatExp> {
         return base + "e" + exp;
     }
 
+    public String toFixed(int digits) {
+        norm();
+        return String.format(("%." + digits + "fe%d"), base, exp);
+    }
+
     public FloatExp add(FloatExp other) {
         if (other.base == 0) return this;
         else if (base == 0) return other;

@@ -70,7 +70,11 @@ public class Mandelbrot {
     }
 
     public void zoomOut() {
-        setScale(scale.mul(2));
+        zoomOut(2);
+    }
+
+    public void zoomOut(double scale) {
+        setScale(this.scale.mul(scale));
         calcRef = false;
     }
 
@@ -239,7 +243,7 @@ public class Mandelbrot {
             if (scale.compareTo(new FloatExp(1, -320)) > 0) {
                 iter = getPTIter(approx.toComplex(), c.toComplex(), refComplex, coefficient.getIterationCount() + 1);
             } else {
-                if (approx.getRe().scale() < -162 || approx.getIm().scale() < -162)
+                if (approx.getRe().scale() < -160 || approx.getIm().scale() < -160)
                     iter = getPTIterFloatExp(approx, c, reference, coefficient.getIterationCount() + 1);
                 else
                     iter = getPTIter(approx.toComplex(), c.toComplex(), refComplex, coefficient.getIterationCount() + 1);
@@ -308,7 +312,7 @@ public class Mandelbrot {
     }
 
 
-    private static final BigDecimal ESCAPE_RADIUS = new BigDecimal(10000);
+    private static final BigDecimal ESCAPE_RADIUS = new BigDecimal(1000);
 
     public List<FloatExpComplex> getReference(DeepComplex c) {
         List<FloatExpComplex> referencePoints = new ArrayList<>();

@@ -230,9 +230,9 @@ public class MandelbrotApp extends JFrame {
         MandelbrotStats stats = mandelbrot.getStats();
         double guessed = (double) stats.guessed.get() / stats.totalPixels;
         double ref = (double) stats.refIter.get() / mandelbrot.getMaxIter();
-        double approx = (double) stats.approx.get() / mandelbrot.getMaxIter();
+        double approx = (double) stats.approx.get() / stats.refIter.get();
         double percent = (double) stats.drawn.get() / stats.totalPixels;
-        label.setText(String.format("%.1f%%  Ref: %.1f%%  Approx: %.1f%%  Guessed: %.1f%%  Zoom: %s  It: %d  ", percent * 100, ref * 100, approx * 100, guessed * 100, new FloatExp(4).div(mandelbrot.getScale()), mandelbrot.getMaxIter()));
+        label.setText(String.format("%.1f%%  Ref: %.1f%%  Approx: %.1f%%  Guessed: %.1f%%  Zoom: %s  It: %d  ", percent * 100, ref * 100, approx * 100, guessed * 100, new FloatExp(4).div(mandelbrot.getScale()).toFixed(3), mandelbrot.getMaxIter()));
     }
 
     public void storeImageSeq(File dir) {
@@ -295,7 +295,7 @@ class DrawingPanel extends JPanel {
                     if (SwingUtilities.isLeftMouseButton(e)) {
                         mandelbrot.zoomIn(originalX, originalY);
                     } else if (SwingUtilities.isRightMouseButton(e)) {
-                        mandelbrot.zoomOut(originalX, originalY);
+                        mandelbrot.zoomOut(4);
                     }
                     try {
                         startDraw();
