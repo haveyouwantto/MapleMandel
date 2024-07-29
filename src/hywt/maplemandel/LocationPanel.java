@@ -5,8 +5,8 @@ import java.awt.*;
 import java.math.BigDecimal;
 
 public class LocationPanel extends JPanel {
-    private JTextArea reField;
-    private JTextArea imField;
+    private ScrollTextArea reField;
+    private ScrollTextArea imField;
     private JTextField magnField;
     private JTextField iterField;
 
@@ -15,11 +15,11 @@ public class LocationPanel extends JPanel {
         setLayout(new BorderLayout());
 
         JLabel reLabel = new JLabel("Real");
-        reField = new JTextArea("-1.99999911758766165543764649311537154663");
-        reField.setLineWrap(true);
+        reField = new ScrollTextArea("-1.99999911758766165543764649311537154663");
+        reField.getArea().setLineWrap(true);
         JLabel imLabel = new JLabel("Imag");
-        imField = new JTextArea("-4.2402439547240753390707694210131039e-13");
-        imField.setLineWrap(true);
+        imField = new ScrollTextArea("-4.2402439547240753390707694210131039e-13");
+        imField.getArea().setLineWrap(true);
 
 
         JLabel magnLabel = new JLabel("Magnification");
@@ -41,25 +41,23 @@ public class LocationPanel extends JPanel {
         innerPanel.add(magnField);
         innerPanel.add(iterLabel);
         innerPanel.add(iterField);
-        panel.add(innerPanel);
-        JScrollPane scrollPane = new JScrollPane();
-        scrollPane.getViewport().add(panel);
 
-        add(scrollPane, BorderLayout.CENTER);
+        add(panel, BorderLayout.CENTER);
+        add(innerPanel, BorderLayout.SOUTH);
 
         setPreferredSize(new Dimension(500,500));
     }
 
     public DeepComplex getPos(){
         return  new DeepComplex(
-                new BigDecimal(reField.getText()),
-                new BigDecimal(imField.getText())
+                new BigDecimal(reField.getArea().getText()),
+                new BigDecimal(imField.getArea().getText())
         );
     }
 
     public LocationPanel setPos(DeepComplex pos){
-        reField.setText(pos.getRe().toString());
-        imField.setText(pos.getIm().toString());
+        reField.getArea().setText(pos.getRe().toString());
+        imField.getArea().setText(pos.getIm().toString());
         return this;
     }
 
