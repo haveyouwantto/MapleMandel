@@ -141,7 +141,7 @@ public class Mandelbrot {
         return drawing;
     }
 
-    public synchronized void draw(BufferedImage image) throws ExecutionException, InterruptedException {
+    public synchronized void draw(BufferedImage image) {
         drawing = true;
         stats.reset();
         int width = image.getWidth();
@@ -275,22 +275,24 @@ public class Mandelbrot {
 
     public void calc(int x, int y, Graphics g, int w, int h) {
         FloatExpComplex c = getDelta(x, y);
-        int iter;
+        int iter = 0;
         if (coefficient.getIterationCount() > 2) {
             FloatExpComplex approx = approximate(coefficient, c);
             if (scale.compareTo(new FloatExp(1, -320)) > 0) {
                 iter = getPTIter(approx.toComplex(), c.toComplex(), refComplex, coefficient.getIterationCount() + 1);
             } else {
-                if (approx.getRe().scale() < -160 || approx.getIm().scale() < -160)
-                    iter = getPTIterFloatExp(approx, c, reference, coefficient.getIterationCount() + 1);
-                else
+                if (approx.getRe().scale() < -160 || approx.getIm().scale() < -160) {
+                    Parcel<Integer, FloatExpComplex> result = getPTIterFloatExp(approx, c, reference, coefficient.getIterationCount() + 1);
+                    iter = result.value == null ? result.key : getPTIter(result.value.toComplex(), c.toComplex(), refComplex, result.key + 1);
+                } else
                     iter = getPTIter(approx.toComplex(), c.toComplex(), refComplex, coefficient.getIterationCount() + 1);
             }
         } else {
             if (scale.compareTo(new FloatExp(1, -320)) > 0) {
                 iter = getPTIter(c.toComplex(), refComplex);
             } else {
-                iter = getPTIterFloatExp(c, c, reference, 0);
+                Parcel<Integer, FloatExpComplex> result = getPTIterFloatExp(c, c, reference, 0);
+                iter = result.value == null ? result.key : getPTIter(result.value.toComplex(), c.toComplex(), refComplex, result.key + 1);
             }
         }
         iterations[x][y] = iter;
@@ -351,7 +353,7 @@ public class Mandelbrot {
 
     private static final BigDecimal ESCAPE_RADIUS = new BigDecimal(1000);
 
-    public List<FloatExpComplex> getReference(DeepComplex c) throws ExecutionException, InterruptedException {
+    public List<FloatExpComplex> getReference(DeepComplex c) {
         List<FloatExpComplex> referencePoints = new ArrayList<>();
         int precision = -scale.scale() + 10;
         DeepComplex z = new DeepComplex(0, 0).setPrecision(precision);
@@ -366,10 +368,10 @@ public class Mandelbrot {
 
             BigDecimal re = z.getRe();
             BigDecimal im = z.getIm();
-            Future<BigDecimal> x = executor.submit(()-> re.multiply(re, mc).subtract(im.multiply(im, mc), mc).add(c.getRe(), mc));
-            Future<BigDecimal> y = executor.submit(()->re.multiply(im, mc).multiply(BigDecimal.valueOf(2), mc).add(c.getIm(), mc));
+            BigDecimal x = re.multiply(re, mc).subtract(im.multiply(im, mc), mc).add(c.getRe(), mc);
+            BigDecimal y = re.multiply(im, mc).multiply(BigDecimal.valueOf(2), mc).add(c.getIm(), mc);
 
-            z = new DeepComplex(x.get(), y.get()).setPrecision(precision);
+            z = new DeepComplex(x, y).setPrecision(precision);
             stats.refIter.incrementAndGet();
         }
         return referencePoints;
@@ -453,7 +455,7 @@ public class Mandelbrot {
     }
 
 
-    public int getPTIterFloatExp(FloatExpComplex delta, FloatExpComplex origin, List<FloatExpComplex> reference, int start) {
+    public Parcel<Integer, FloatExpComplex> getPTIterFloatExp(FloatExpComplex delta, FloatExpComplex origin, List<FloatExpComplex> reference, int start) {
         FloatExpComplex tmp;
 
         int iter = start;
@@ -469,8 +471,11 @@ public class Mandelbrot {
             FloatExpComplex Z2 = reference.get(refIter);
             FloatExpComplex val = Z2.add(delta);// 合并参考与delta
 
+            if (delta.getRe().scale() > -160 && delta.getIm().scale() > -160) {
+                return new Parcel<>(iter, delta);
+            }
             if (val.abs().doubleValue() > 4) {
-                return iter;
+                return new Parcel<>(iter, null);
             }  // 逃逸检测
             if (val.abs().compareTo(delta.abs()) < 0 || refIter == reference.size() - 1) { // 检测是否需要变基
                 delta = val;
@@ -478,7 +483,7 @@ public class Mandelbrot {
             }
             iter++;
         }
-        return iter;
+        return new Parcel<>(iter, null);
     }
 
 }

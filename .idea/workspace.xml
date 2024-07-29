@@ -4,9 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="optimize LocationPanel">
+    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="optimize reference calculation">
+      <change afterPath="$PROJECT_DIR$/src/hywt/maplemandel/Parcel.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/DeepComplex.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/DeepComplex.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/Mandelbrot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/Mandelbrot.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -40,7 +40,7 @@
     "git-widget-placeholder": "master",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "I:/项目/Shao-s-Beautiful-World",
-    "应用程序.Main.executor": "Run",
+    "应用程序.Main.executor": "Debug",
     "应用程序.MandelbrotApp.executor": "Run"
   }
 }]]></component>
@@ -259,7 +259,15 @@
       <option name="project" value="LOCAL" />
       <updated>1722221760379</updated>
     </task>
-    <option name="localTasksCounter" value="23" />
+    <task id="LOCAL-00023" summary="optimize reference calculation">
+      <option name="closed" value="true" />
+      <created>1722223069694</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1722223069694</updated>
+    </task>
+    <option name="localTasksCounter" value="24" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -285,6 +293,7 @@
     <MESSAGE value="optimize mandel app" />
     <MESSAGE value="add reuse center" />
     <MESSAGE value="optimize LocationPanel" />
-    <option name="LAST_COMMIT_MESSAGE" value="optimize LocationPanel" />
+    <MESSAGE value="optimize reference calculation" />
+    <option name="LAST_COMMIT_MESSAGE" value="optimize reference calculation" />
   </component>
 </project>
