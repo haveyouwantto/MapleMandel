@@ -45,7 +45,7 @@ public class LocationPanel extends JPanel {
         add(panel, BorderLayout.CENTER);
         add(innerPanel, BorderLayout.SOUTH);
 
-        setPreferredSize(new Dimension(500,500));
+        setPreferredSize(new Dimension(800,480));
     }
 
     public DeepComplex getPos(){

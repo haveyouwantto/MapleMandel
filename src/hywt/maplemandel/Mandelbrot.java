@@ -360,15 +360,18 @@ public class Mandelbrot {
         MathContext mc = new MathContext(precision);
 
         for (int i = 0; i < this.maxIter; i++) {
-            if (z.abs().compareTo(ESCAPE_RADIUS) > 0) {
+            BigDecimal re = z.getRe();
+            BigDecimal im = z.getIm();
+            BigDecimal x2 = re.multiply(re, mc);
+            BigDecimal y2 = im.multiply(im, mc);
+
+            if (x2.add(y2).compareTo(ESCAPE_RADIUS) > 0) {
                 break;
             }
 
             referencePoints.add(z.toFloatExp());
 
-            BigDecimal re = z.getRe();
-            BigDecimal im = z.getIm();
-            BigDecimal x = re.multiply(re, mc).subtract(im.multiply(im, mc), mc).add(c.getRe(), mc);
+            BigDecimal x = x2.subtract(y2, mc).add(c.getRe(), mc);
             BigDecimal y = re.multiply(im, mc).multiply(BigDecimal.valueOf(2), mc).add(c.getIm(), mc);
 
             z = new DeepComplex(x, y).setPrecision(precision);
