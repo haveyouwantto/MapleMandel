@@ -27,7 +27,7 @@ public class DeepComplex {
 
     public BigDecimal abs() {
         if (absValue == null) {
-            absValue = re.multiply(re, mc).add(im.multiply(im, mc), mc).sqrt(mc);
+            absValue = re.multiply(re, MathContext.DECIMAL64).add(im.multiply(im, MathContext.DECIMAL64));
         }
         return absValue;
     }

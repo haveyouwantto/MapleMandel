@@ -4,6 +4,7 @@ import java.awt.Graphics;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -140,7 +141,7 @@ public class Mandelbrot {
         return drawing;
     }
 
-    public synchronized void draw(BufferedImage image) {
+    public synchronized void draw(BufferedImage image) throws ExecutionException, InterruptedException {
         drawing = true;
         stats.reset();
         int width = image.getWidth();
@@ -201,6 +202,7 @@ public class Mandelbrot {
                                 Color color = (left >= maxIter) ? Color.BLACK : Palette.getColor(left);
                                 finalG.setColor(color);
                                 finalG.fillRect(x, finalY, 1, 2);
+                                stats.drawn.incrementAndGet();
                                 stats.guessed.incrementAndGet();
                                 continue;
                             }
@@ -238,6 +240,7 @@ public class Mandelbrot {
                                 iterations[x][finalY] = top;
                                 Color color = (top >= maxIter) ? Color.BLACK : Palette.getColor(top);
                                 image.setRGB(x, finalY, color.getRGB());
+                                stats.drawn.incrementAndGet();
                                 stats.guessed.incrementAndGet();
                                 continue;
                             }
@@ -348,10 +351,11 @@ public class Mandelbrot {
 
     private static final BigDecimal ESCAPE_RADIUS = new BigDecimal(1000);
 
-    public List<FloatExpComplex> getReference(DeepComplex c) {
+    public List<FloatExpComplex> getReference(DeepComplex c) throws ExecutionException, InterruptedException {
         List<FloatExpComplex> referencePoints = new ArrayList<>();
         int precision = -scale.scale() + 10;
         DeepComplex z = new DeepComplex(0, 0).setPrecision(precision);
+        MathContext mc = new MathContext(precision);
 
         for (int i = 0; i < this.maxIter; i++) {
             if (z.abs().compareTo(ESCAPE_RADIUS) > 0) {
@@ -359,7 +363,13 @@ public class Mandelbrot {
             }
 
             referencePoints.add(z.toFloatExp());
-            z = z.mul(z).add(c);
+
+            BigDecimal re = z.getRe();
+            BigDecimal im = z.getIm();
+            Future<BigDecimal> x = executor.submit(()-> re.multiply(re, mc).subtract(im.multiply(im, mc), mc).add(c.getRe(), mc));
+            Future<BigDecimal> y = executor.submit(()->re.multiply(im, mc).multiply(BigDecimal.valueOf(2), mc).add(c.getIm(), mc));
+
+            z = new DeepComplex(x.get(), y.get()).setPrecision(precision);
             stats.refIter.incrementAndGet();
         }
         return referencePoints;
