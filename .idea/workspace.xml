@@ -4,13 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="extract ref calc">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="optimize floatexp">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/FloatExp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/FloatExp.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/FloatExpComplex.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/FloatExpComplex.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/Mandelbrot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/Mandelbrot.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/Palette.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/Palette.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -289,11 +287,18 @@
       <option name="project" value="LOCAL" />
       <updated>1722234746215</updated>
     </task>
-    <option name="localTasksCounter" value="26" />
+    <task id="LOCAL-00026" summary="optimize floatexp">
+      <option name="closed" value="true" />
+      <created>1722295140707</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1722295140707</updated>
+    </task>
+    <option name="localTasksCounter" value="27" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Initial commit (4.3)" />
     <MESSAGE value="5.2" />
     <MESSAGE value="5.3" />
     <MESSAGE value="7.2" />
@@ -318,6 +323,7 @@
     <MESSAGE value="optimize reference calculation" />
     <MESSAGE value="add floatexp early exit" />
     <MESSAGE value="extract ref calc" />
-    <option name="LAST_COMMIT_MESSAGE" value="extract ref calc" />
+    <MESSAGE value="optimize floatexp" />
+    <option name="LAST_COMMIT_MESSAGE" value="optimize floatexp" />
   </component>
 </project>

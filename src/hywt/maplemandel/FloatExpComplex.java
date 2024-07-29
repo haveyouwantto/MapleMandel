@@ -67,9 +67,15 @@ public class FloatExpComplex {
     }
 
     public FloatExpComplex mulMut(FloatExpComplex other) {
-        this.re.mulMut(other.re);
-        this.im.mulMut(other.im);
+        FloatExp x = re;
+        FloatExp y = im;
+        re = x.mul(other.re).subMut(y.mul(other.im));
+        im = x.mulMut(other.im).addMut(y.mulMut(other.re));
         return this;
+    }
+
+    public FloatExpComplex copy() {
+        return new FloatExpComplex(re.copy(), im.copy());
     }
 
     public Complex toComplex() {

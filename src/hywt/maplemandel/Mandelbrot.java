@@ -399,10 +399,10 @@ public class Mandelbrot {
 
                 for (int i = 0; i < validation.size(); i++) {
                     FloatExpComplex v = iterV.get(i);
-                    FloatExpComplex v2 = v.mul(Z).mul(2).add(v.mul(v)).add(validation.get(i));
+                    FloatExpComplex v2 = v.mul(Z).mul(2).addMut(v.mul(v)).addMut(validation.get(i));
                     FloatExpComplex approx = approximate(coeff, validation.get(i));
-                    double error = Math.abs((approx.getRe().div(v2.getRe()).abs().add(approx.getIm().div(v2.getIm()).abs()))
-                            .sub(new FloatExp(2)).doubleValue());
+                    double error = Math.abs((approx.getRe().div(v2.getRe()).abs().addMut(approx.getIm().div(v2.getIm()).abs()))
+                            .subMut(new FloatExp(2)).doubleValue());
 //                    if(i==0)System.out.println(v2+" "+ approx+" "+error);
                     if (error > 1e-5 || Z.add(v2).abs().doubleValue() > 4 || Double.isNaN(error)) {
                         coeff.undo();
@@ -421,10 +421,10 @@ public class Mandelbrot {
 
     public FloatExpComplex approximate(SeriesCoefficient coeff, FloatExpComplex c) {
         FloatExpComplex result = new FloatExpComplex(0, 0);
-        FloatExpComplex cn = c;
+        FloatExpComplex cn = c.copy();
         for (int i = 0; i < coeff.getTerms(); i++) {
-            result = result.add(coeff.getCoefficient(i).mul(cn));
-            cn = cn.mul(c);
+            result.addMut(coeff.getCoefficient(i).mul(cn));
+            cn = cn.mulMut(c);
         }
         return result;
     }
@@ -475,11 +475,8 @@ public class Mandelbrot {
         while (iter < maxIter) {
             FloatExpComplex Z = reference.get(refIter);
 
-            FloatExp dx = delta.getRe();
-            FloatExp dy = delta.getIm();
-
             // 计算delta的影响
-            delta = delta.mul(Z.mul(2).addMut(delta)).addMut(origin);
+            delta.mulMut(Z.mul(2).addMut(delta)).addMut(origin);
             refIter++;
 
             FloatExpComplex Z2 = reference.get(refIter);
@@ -488,10 +485,11 @@ public class Mandelbrot {
             if (delta.getRe().scale() > -160 && delta.getIm().scale() > -160) {
                 return new Parcel<>(iter, delta);
             }
-            if (val.abs().doubleValue() > 4) {
+            FloatExp len = val.abs();
+            if (len.doubleValue() > 4) {
                 return new Parcel<>(iter, null);
             }  // 逃逸检测
-            if (val.abs().compareTo(delta.abs()) < 0 || refIter == reference.size() - 1) { // 检测是否需要变基
+            if (len.compareTo(delta.abs()) < 0 || refIter == reference.size() - 1) { // 检测是否需要变基
                 delta = val;
                 refIter = 0;
             }

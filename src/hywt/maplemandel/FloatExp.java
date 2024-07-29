@@ -55,28 +55,34 @@ public class FloatExp implements Comparable<FloatExp> {
     public FloatExp add(FloatExp other) {
         if (other.base == 0) return this;
         else if (base == 0) return other;
-        int expDiff = other.exp - this.exp;
+        int expDiff = other.exp - exp;
         if (expDiff == 0) {
-            return new FloatExp(this.base + other.base, this.exp);
+            return new FloatExp(base + other.base, exp);
         } else if (expDiff > 16) {
             return other;
         } else {
-            return new FloatExp(this.base + other.base * Math.pow(10, expDiff), this.exp);
+            return new FloatExp(base + other.base * Math.pow(10, expDiff), exp);
         }
     }
 
     public FloatExp addMut(FloatExp other) {
         if (other.base == 0) return this;
-        else if (base == 0) return other;
-        int expDiff = other.exp - this.exp;
+        else if (base == 0) {
+            base = other.base;
+            exp = other.exp;
+            return this;
+        }
+        int expDiff = other.exp - exp;
         if (expDiff == 0) {
-            this.base += other.base;
-            return this;
+            base += other.base;
+            return this.norm();
         } else if (expDiff > 16) {
-            return other;
-        } else {
-            this.base += other.base * Math.pow(10, expDiff);
+            base = other.base;
+            exp = other.exp;
             return this;
+        } else {
+            base += other.base * Math.pow(10, expDiff);
+            return this.norm();
         }
     }
 
@@ -96,16 +102,22 @@ public class FloatExp implements Comparable<FloatExp> {
 
     public FloatExp subMut(FloatExp other) {
         if (other.base == 0) return this;
-        else if (base == 0) return other.rev();
+        else if (base == 0) {
+            base = -other.base;
+            exp = other.exp;
+            return this;
+        }
         int expDiff = other.exp - this.exp;
         if (expDiff == 0) {
             this.base -= other.base;
-            return this;
+            return this.norm();
         } else if (expDiff > 16) {
-            return other;
+            base = -other.base;
+            exp = other.exp;
+            return this;
         } else {
             this.base -= other.base * Math.pow(10, expDiff);
-            return this;
+            return this.norm();
         }
     }
 
@@ -116,8 +128,7 @@ public class FloatExp implements Comparable<FloatExp> {
     public FloatExp mulMut(FloatExp other) {
         this.base *= other.base;
         this.exp += other.exp;
-        norm();
-        return this;
+        return this.norm();
     }
 
     public FloatExp div(FloatExp other) {
@@ -129,8 +140,7 @@ public class FloatExp implements Comparable<FloatExp> {
         if (other.base == 0) throw new ArithmeticException("divide by 0");
         this.base /= other.base;
         this.exp -= other.exp;
-        norm();
-        return this;
+        return this.norm();
     }
 
     public FloatExp add(double other) {
@@ -206,5 +216,9 @@ public class FloatExp implements Comparable<FloatExp> {
         int exp = Integer.compare(this.exp, o.exp);
         if (exp != 0) return exp;
         else return Double.compare(this.base, o.base);
+    }
+
+    protected FloatExp copy()  {
+        return new FloatExp(base, exp);
     }
 }
