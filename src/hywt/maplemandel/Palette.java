@@ -23,24 +23,24 @@ public class Palette {
             {220, 20, 60}, {255, 192, 203}, {255, 182, 193}, {220, 220, 220}, {211, 211, 211}, {192, 192, 192},
             {169, 169, 169}, {128, 128, 128}, {105, 105, 105}, {119, 136, 153}, {112, 128, 144}, {47, 79, 79}};
 
-    private static float[] colorTrans( float it) {
-        float percent = it - (float) Math.floor(it);
+    private static double[] colorTrans( double it) {
+        double percent = it - Math.floor(it);
         int c1 = (int) Math.floor(it) % palette.length;
         int c2 = (c1 + 1) % palette.length;
-        float r = (1 - percent) * palette[c1][0] + (percent) * palette[c2][0];
-        float g = (1 - percent) * palette[c1][1] + (percent) * palette[c2][1];
-        float b = (1 - percent) * palette[c1][2] + (percent) * palette[c2][2];
-        return new float[]{r, g, b};
+        double r = (1 - percent) * palette[c1][0] + (percent) * palette[c2][0];
+        double g = (1 - percent) * palette[c1][1] + (percent) * palette[c2][1];
+        double b = (1 - percent) * palette[c1][2] + (percent) * palette[c2][2];
+        return new double[]{r, g, b};
     }
 
-    public static Color getColor(int it) {
+    public static Color getColor(double it) {
         if (it == -1) {
             return Color.BLACK;
         }
-        float[] color = colorTrans(it / 6.0f);
-        int r = Math.round(color[0]);
-        int g = Math.round(color[1]);
-        int b = Math.round(color[2]);
+        double[] color = colorTrans(it / 6.0);
+        int r = (int) Math.round(color[0]);
+        int g = (int) Math.round(color[1]);
+        int b = (int) Math.round(color[2]);
         return new Color(r,g,b);
     }
 }

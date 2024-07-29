@@ -25,8 +25,12 @@ public class FloatExpComplex {
         );
     }
 
-    public FloatExpComplex mul(double other){
+    public FloatExpComplex mul(double other) {
         return new FloatExpComplex(re.mul(other), im.mul(other));
+    }
+
+    public FloatExpComplex square() {
+        return new FloatExpComplex(re.mul(re).sub(im.mul(im)), re.mul(im).mul(2));
     }
 
     public FloatExpComplex div(FloatExpComplex other) {
@@ -50,6 +54,24 @@ public class FloatExpComplex {
         );
     }
 
+    public FloatExpComplex addMut(FloatExpComplex other) {
+        this.re.addMut(other.re);
+        this.im.addMut(other.im);
+        return this;
+    }
+
+    public FloatExpComplex subMut(FloatExpComplex other) {
+        this.re.subMut(other.re);
+        this.im.subMut(other.im);
+        return this;
+    }
+
+    public FloatExpComplex mulMut(FloatExpComplex other) {
+        this.re.mulMut(other.re);
+        this.im.mulMut(other.im);
+        return this;
+    }
+
     public Complex toComplex() {
         return new Complex(re.doubleValue(), im.doubleValue());
     }
@@ -71,6 +93,6 @@ public class FloatExpComplex {
 
     @Override
     public String toString() {
-        return String.format("%s+%si",re,im);
+        return String.format("%s+%si", re, im);
     }
 }

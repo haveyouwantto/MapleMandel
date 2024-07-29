@@ -266,11 +266,19 @@ public class Mandelbrot {
         calcRef = false;
 
 
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                image.setRGB(x, y, ((iterations[x][y] >= maxIter) ? Color.BLACK : Palette.getColor(iterations[x][y])).getRGB());
-            }
-        }
+//        double[][] diff = new double[width][height];
+//        for (int x = 0; x < width-1; x++) {
+//            for (int y = 0; y < height-1; y++) {
+//                int gradX = iterations[x+1][y] - iterations[x][y];
+//                int gradY = iterations[x][y+1] - iterations[x][y];
+//                diff[x][y] = Math.sqrt(gradX*gradX+gradY*gradY);
+//            }
+//        }
+//        for (int x = 0; x < width; x++) {
+//            for (int y = 0; y < height; y++) {
+//                image.setRGB(x, y, ((iterations[x][y] >= maxIter) ? Color.BLACK : Palette.getColor(diff[x][y])).getRGB());
+//            }
+//        }
     }
 
     public void calc(int x, int y, Graphics g, int w, int h) {
@@ -436,7 +444,7 @@ public class Mandelbrot {
             Complex Z = reference.get(refIter);
 
             // 计算delta的影响
-            tmp = 2 * (Z.getRe() * dRe - Z.getIm() * dIm) + (dRe * dRe - dIm * dIm) + origin.getRe();
+            tmp = (2 * Z.getRe() + dRe) * dRe - (2 * Z.getIm() + dIm) * dIm + origin.getRe();
             dIm = 2 * (Z.getRe() * dIm + Z.getIm() * dRe + dRe * dIm) + origin.getIm();
             dRe = tmp;
             refIter++;
@@ -461,14 +469,17 @@ public class Mandelbrot {
     public Parcel<Integer, FloatExpComplex> getPTIterFloatExp(FloatExpComplex delta, FloatExpComplex origin, List<FloatExpComplex> reference, int start) {
         FloatExpComplex tmp;
 
+
         int iter = start;
         int refIter = start;
         while (iter < maxIter) {
             FloatExpComplex Z = reference.get(refIter);
 
+            FloatExp dx = delta.getRe();
+            FloatExp dy = delta.getIm();
+
             // 计算delta的影响
-            tmp = Z.mul(delta).mul(2).add(delta.mul(delta)).add(origin);
-            delta = tmp;
+            delta = delta.mul(Z.mul(2).addMut(delta)).addMut(origin);
             refIter++;
 
             FloatExpComplex Z2 = reference.get(refIter);

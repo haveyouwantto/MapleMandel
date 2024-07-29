@@ -4,10 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="add floatexp early exit">
+    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="extract ref calc">
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/LocationPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/LocationPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/FloatExp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/FloatExp.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/FloatExpComplex.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/FloatExpComplex.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/Mandelbrot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/Mandelbrot.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/Palette.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/Palette.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -33,17 +36,20 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "master",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "I:/项目/Shao-s-Beautiful-World",
-    "应用程序.Main.executor": "Run",
-    "应用程序.MandelbrotApp.executor": "Run"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;I:/项目/Shao-s-Beautiful-World&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;项目&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;应用程序.Main.executor&quot;: &quot;Run&quot;,
+    &quot;应用程序.MandelbrotApp.executor&quot;: &quot;Run&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveInnerDialog.RECENTS_KEY">
       <recent name="hywt.maplemandel" />
@@ -275,7 +281,15 @@
       <option name="project" value="LOCAL" />
       <updated>1722223977709</updated>
     </task>
-    <option name="localTasksCounter" value="25" />
+    <task id="LOCAL-00025" summary="extract ref calc">
+      <option name="closed" value="true" />
+      <created>1722234746215</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1722234746215</updated>
+    </task>
+    <option name="localTasksCounter" value="26" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -303,6 +317,7 @@
     <MESSAGE value="optimize LocationPanel" />
     <MESSAGE value="optimize reference calculation" />
     <MESSAGE value="add floatexp early exit" />
-    <option name="LAST_COMMIT_MESSAGE" value="add floatexp early exit" />
+    <MESSAGE value="extract ref calc" />
+    <option name="LAST_COMMIT_MESSAGE" value="extract ref calc" />
   </component>
 </project>

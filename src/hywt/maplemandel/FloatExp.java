@@ -3,8 +3,8 @@ package hywt.maplemandel;
 import java.math.BigDecimal;
 
 public class FloatExp implements Comparable<FloatExp> {
-    private double base;
-    private int exp;
+    double base;
+    int exp;
 
     public FloatExp(double base, int exp) {
         if (Double.isNaN(base) || Double.isNaN(exp) || Double.isInfinite(base) || Double.isInfinite(exp)) {
@@ -19,7 +19,7 @@ public class FloatExp implements Comparable<FloatExp> {
         this(val, 0);
     }
 
-    private void norm() {
+    public FloatExp norm() {
         if (base != 0) {
             while (Math.abs(base) >= 10) {
                 exp++;
@@ -30,6 +30,7 @@ public class FloatExp implements Comparable<FloatExp> {
                 base *= 10;
             }
         }
+        return this;
     }
 
     public double doubleValue() {
@@ -64,6 +65,21 @@ public class FloatExp implements Comparable<FloatExp> {
         }
     }
 
+    public FloatExp addMut(FloatExp other) {
+        if (other.base == 0) return this;
+        else if (base == 0) return other;
+        int expDiff = other.exp - this.exp;
+        if (expDiff == 0) {
+            this.base += other.base;
+            return this;
+        } else if (expDiff > 16) {
+            return other;
+        } else {
+            this.base += other.base * Math.pow(10, expDiff);
+            return this;
+        }
+    }
+
     public FloatExp sub(FloatExp other) {
         if (other.base == 0) return this;
         else if (base == 0) return other.rev();
@@ -77,13 +93,44 @@ public class FloatExp implements Comparable<FloatExp> {
         }
     }
 
+
+    public FloatExp subMut(FloatExp other) {
+        if (other.base == 0) return this;
+        else if (base == 0) return other.rev();
+        int expDiff = other.exp - this.exp;
+        if (expDiff == 0) {
+            this.base -= other.base;
+            return this;
+        } else if (expDiff > 16) {
+            return other;
+        } else {
+            this.base -= other.base * Math.pow(10, expDiff);
+            return this;
+        }
+    }
+
     public FloatExp mul(FloatExp other) {
         return new FloatExp(this.base * other.base, this.exp + other.exp);
+    }
+
+    public FloatExp mulMut(FloatExp other) {
+        this.base *= other.base;
+        this.exp += other.exp;
+        norm();
+        return this;
     }
 
     public FloatExp div(FloatExp other) {
         if (other.base == 0) throw new ArithmeticException("divide by 0");
         return new FloatExp(this.base / other.base, this.exp - other.exp);
+    }
+
+    public FloatExp divMut(FloatExp other) {
+        if (other.base == 0) throw new ArithmeticException("divide by 0");
+        this.base /= other.base;
+        this.exp -= other.exp;
+        norm();
+        return this;
     }
 
     public FloatExp add(double other) {
@@ -109,6 +156,10 @@ public class FloatExp implements Comparable<FloatExp> {
     public int scale() {
         norm();
         return exp;
+    }
+
+    public FloatExp square() {
+        return mul(this);
     }
 
     public FloatExp sqrt() {
