@@ -164,17 +164,7 @@ public class Mandelbrot {
         System.out.println(coefficient);
 
         // 先进行间隔计算
-        for (int x = 0; x < width; x += 2) {
-            int finalX = x;
-            futures.add(executor.submit(() -> {
-                Graphics finalG = image.getGraphics();
-                for (int y = 0; y < height; y += 2) {
-                    if (iterations[finalX][y] == 0) calc(finalX, y, finalG, 2, 2);
-//                    image.setRGB(finalX, y, color.getRGB());
-                    stats.drawn.incrementAndGet();
-                }
-            }));
-        }
+        successiveRefinement(image, 16);
 
         for (Future<?> future : futures) {
             try {
@@ -202,15 +192,15 @@ public class Mandelbrot {
                                 Color color = (left >= maxIter) ? Color.BLACK : Palette.getColor(left);
                                 finalG.setColor(color);
                                 finalG.fillRect(x, finalY, 1, 2);
-                                stats.drawn.incrementAndGet();
+//                                stats.drawn.incrementAndGet();
                                 stats.guessed.incrementAndGet();
                                 continue;
                             }
                         }
                         // 进行详细计算
                         calc(x, finalY, finalG, 1, 2);
+                        stats.drawn.incrementAndGet();
                     }
-                    stats.drawn.incrementAndGet();
                 }
             }));
         }
@@ -240,15 +230,17 @@ public class Mandelbrot {
                                 iterations[x][finalY] = top;
                                 Color color = (top >= maxIter) ? Color.BLACK : Palette.getColor(top);
                                 image.setRGB(x, finalY, color.getRGB());
-                                stats.drawn.incrementAndGet();
+//                                stats.drawn.incrementAndGet();
                                 stats.guessed.incrementAndGet();
                                 continue;
                             }
                         }
                         // 进行详细计算
-                        if (iterations[x][finalY] == 0) calc(x, finalY, finalG, 1, 1);
+                        if (iterations[x][finalY] == 0) {
+                            calc(x, finalY, finalG, 1, 1);
+                            stats.drawn.incrementAndGet();
+                        }
                     }
-                    stats.drawn.incrementAndGet();
                 }
             }));
         }
@@ -281,7 +273,38 @@ public class Mandelbrot {
 //        }
     }
 
-    public void calc(int x, int y, Graphics g, int w, int h) {
+    private void successiveRefinement(BufferedImage image, int startSize) {
+        int step = startSize;
+
+        // Initial refinement
+        refine(image, 0, 0, step, step, step, step);
+
+        // Loop to progressively refine
+        while (step >= 2) { // Assuming we stop refining at a 1x1 pixel grid
+            int halfStep = step >> 1; // Calculate half step size
+
+            // Refine quadrants
+            refine(image, halfStep, 0, step, step, halfStep, step);
+            refine(image, halfStep, halfStep, halfStep, step, halfStep, halfStep);
+
+            step = halfStep; // Halve the step size to refine further
+        }
+    }
+
+    private void refine(BufferedImage image, int startX, int startY, int stepX, int stepY, int drawWidth, int drawHeight) {
+        for (int y = startY; y < height; y += stepY) {
+            int finalY = y;
+            futures.add(executor.submit(() -> {
+                Graphics finalG = image.getGraphics();
+                for (int x = startX; x < width; x += stepX) {
+                    if (iterations[x][finalY] == 0) calc(x, finalY, finalG, drawWidth, drawHeight);
+                    stats.drawn.incrementAndGet();
+                }
+            }));
+        }
+    }
+
+    private void calc(int x, int y, Graphics g, int w, int h) {
         FloatExpComplex c = getDelta(x, y);
         int iter = 0;
         if (coefficient.getIterationCount() > 2) {
