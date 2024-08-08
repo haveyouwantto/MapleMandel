@@ -18,7 +18,7 @@ public class MandelbrotApp extends JFrame {
 
     public MandelbrotApp() throws Exception {
         // 创建一个JFrame窗口
-        super("Mandelbrot Tester");
+        super("MapleMandel");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(500, 500);
         setLocationRelativeTo(null);
@@ -276,8 +276,8 @@ class DrawingPanel extends JPanel {
     private boolean enabled;
 
     public DrawingPanel() throws Exception {
-        int width = 1000;
-        int height = 1000;
+        int width = 1920;
+        int height = 1920;
 
         // 创建一个BufferedImage
         image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
@@ -285,8 +285,8 @@ class DrawingPanel extends JPanel {
         enabled = true;
 
         addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
+
+            public void mousePressed(MouseEvent e) {
                 if (enabled) {
                     Rectangle bounds = getImageBounds();
 

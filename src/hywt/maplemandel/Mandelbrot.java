@@ -134,7 +134,6 @@ public class Mandelbrot {
             future.cancel(true);
         }
         futures.clear();
-        clear();
     }
 
     public boolean isDrawing() {
@@ -164,16 +163,7 @@ public class Mandelbrot {
         System.out.println(coefficient);
 
         // 先进行间隔计算
-        successiveRefinement(image, 16);
-
-        for (Future<?> future : futures) {
-            try {
-                future.get();
-            } catch (CancellationException e) {
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-        }
+        successiveRefinement(image, 64);
 
         if (!drawing) return;
 
@@ -192,14 +182,16 @@ public class Mandelbrot {
                                 Color color = (left >= maxIter) ? Color.BLACK : Palette.getColor(left);
                                 finalG.setColor(color);
                                 finalG.fillRect(x, finalY, 1, 2);
-//                                stats.drawn.incrementAndGet();
+                                stats.drawn.incrementAndGet();
                                 stats.guessed.incrementAndGet();
                                 continue;
                             }
                         }
                         // 进行详细计算
-                        calc(x, finalY, finalG, 1, 2);
-                        stats.drawn.incrementAndGet();
+                        if (iterations[x][finalY] == 0) {
+                            calc(x, finalY, finalG, 1, 2);
+                            stats.drawn.incrementAndGet();
+                        }
                     }
                 }
             }));
@@ -230,7 +222,7 @@ public class Mandelbrot {
                                 iterations[x][finalY] = top;
                                 Color color = (top >= maxIter) ? Color.BLACK : Palette.getColor(top);
                                 image.setRGB(x, finalY, color.getRGB());
-//                                stats.drawn.incrementAndGet();
+                                stats.drawn.incrementAndGet();
                                 stats.guessed.incrementAndGet();
                                 continue;
                             }
@@ -266,9 +258,24 @@ public class Mandelbrot {
 //                diff[x][y] = Math.sqrt(gradX*gradX+gradY*gradY);
 //            }
 //        }
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                image.setRGB(x, y, ((iterations[x][y] >= maxIter) ?
+                        Color.BLACK :
+                        Palette.getColor(
+                                iterations[x][y]
+                        )
+                ).getRGB());
+            }
+        }
 //        for (int x = 0; x < width; x++) {
 //            for (int y = 0; y < height; y++) {
-//                image.setRGB(x, y, ((iterations[x][y] >= maxIter) ? Color.BLACK : Palette.getColor(diff[x][y])).getRGB());
+//                image.setRGB(x, y, ((iterations[x][y] >= maxIter) ?
+//                        Color.BLACK :
+//                        Palette.getColor(
+//                                (Math.log(diff[x][y]+1)-1)*6
+//                        )
+//                ).getRGB());
 //            }
 //        }
     }
@@ -280,12 +287,12 @@ public class Mandelbrot {
         refine(image, 0, 0, step, step, step, step);
 
         // Loop to progressively refine
-        while (step >= 2) { // Assuming we stop refining at a 1x1 pixel grid
+        while (step > 2) { // Assuming we stop refining at a 1x1 pixel grid
             int halfStep = step >> 1; // Calculate half step size
 
             // Refine quadrants
             refine(image, halfStep, 0, step, step, halfStep, step);
-            refine(image, halfStep, halfStep, halfStep, step, halfStep, halfStep);
+            refine(image, 0, halfStep, halfStep, step, halfStep, halfStep);
 
             step = halfStep; // Halve the step size to refine further
         }
@@ -297,10 +304,21 @@ public class Mandelbrot {
             futures.add(executor.submit(() -> {
                 Graphics finalG = image.getGraphics();
                 for (int x = startX; x < width; x += stepX) {
-                    if (iterations[x][finalY] == 0) calc(x, finalY, finalG, drawWidth, drawHeight);
+                    if (iterations[x][finalY] == 0) {
+                        calc(x, finalY, finalG, drawWidth, drawHeight);
+                    }
                     stats.drawn.incrementAndGet();
                 }
             }));
+        }
+
+        for (Future<?> future : futures) {
+            try {
+                future.get();
+            } catch (CancellationException e) {
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -412,7 +430,7 @@ public class Mandelbrot {
     }
 
     public SeriesCoefficient getSeriesCoefficient(List<FloatExpComplex> reference, List<FloatExpComplex> validation) {
-        SeriesCoefficient coeff = new SeriesCoefficient(10);
+        SeriesCoefficient coeff = new SeriesCoefficient(6);
         List<FloatExpComplex> iterV = new ArrayList<>(validation);
         try {
             for (int n = 0; n < reference.size(); n++) {
