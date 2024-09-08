@@ -32,11 +32,11 @@ public class MandelbrotApp extends JFrame {
 
 
         // 创建工具栏并添加保存按钮
-        JToolBar toolBar = new JToolBar();
+        JMenuBar toolBar = new JMenuBar();
 
-        JButton saveBtn = createSaveBtn();
-        JButton loadBtn = createLoadBtn();
-        JButton saveImgBtn = createSaveImgBtn();
+        JMenuItem saveBtn = createSaveBtn();
+        JMenuItem loadBtn = createLoadBtn();
+        JMenuItem saveImgBtn = createSaveImgBtn();
 
         label = new JLabel("i");
 
@@ -47,7 +47,7 @@ public class MandelbrotApp extends JFrame {
         });
         panel.startDraw();
 
-        JButton resetButton = new JButton("重置");
+        JMenuItem resetButton = new JMenuItem("重置");
         resetButton.addActionListener(e -> {
             try {
                 panel.getMandelbrot().gotoLocation(new DeepComplex(0, 0), new FloatExp(4));
@@ -59,7 +59,7 @@ public class MandelbrotApp extends JFrame {
             }
         });
 
-        JButton increaseIterationsButton = new JButton("增加迭代次数");
+        JMenuItem increaseIterationsButton = new JMenuItem("增加迭代次数");
         increaseIterationsButton.addActionListener(e -> {
             try {
                 panel.getMandelbrot().setMaxIter(panel.getMandelbrot().getMaxIter() * 2);
@@ -70,17 +70,28 @@ public class MandelbrotApp extends JFrame {
             }
         });
 
-        JButton locationButton = createLocationBtn();
-        JButton storeSeqBtn = createStoreSeqBtn();
+        JMenuItem locationButton = createLocationBtn();
+        JMenuItem storeSeqBtn = createStoreSeqBtn();
 
+        JMenu filesMenu = new JMenu("文件");
+        JMenu loadMenu = new JMenu("加载");
+        loadMenu.add(loadBtn);
+        filesMenu.add(loadMenu);
 
-        toolBar.add(saveBtn);
-        toolBar.add(loadBtn);
-        toolBar.add(saveImgBtn);
-        toolBar.add(resetButton);
-        toolBar.add(increaseIterationsButton);
-        toolBar.add(locationButton);
-        toolBar.add(storeSeqBtn);
+        JMenu saveMenu = new JMenu("保存");
+        saveMenu.add(saveBtn);
+        saveMenu.add(saveImgBtn);
+        saveMenu.add(storeSeqBtn);
+        filesMenu.add(saveMenu);
+
+        toolBar.add(filesMenu);
+
+        JMenu paramMenu = new JMenu("参数");
+        paramMenu.add(locationButton);
+        paramMenu.add(increaseIterationsButton);
+        paramMenu.add(resetButton);
+        toolBar.add(paramMenu);
+
         getContentPane().add(toolBar, BorderLayout.NORTH);
         getContentPane().add(label, BorderLayout.SOUTH);
 
@@ -101,8 +112,8 @@ public class MandelbrotApp extends JFrame {
         drawThread.start();
     }
 
-    private JButton createStoreSeqBtn() {
-        JButton storeSeqBtn = new JButton("保存图像序列");
+    private JMenuItem createStoreSeqBtn() {
+        JMenuItem storeSeqBtn = new JMenuItem("图像序列");
         storeSeqBtn.addActionListener(e -> {
             try {
                 JFileChooser fileChooser = new JFileChooser();
@@ -121,8 +132,8 @@ public class MandelbrotApp extends JFrame {
         return storeSeqBtn;
     }
 
-    private JButton createLocationBtn() {
-        JButton locationButton = new JButton("位置");
+    private JMenuItem createLocationBtn() {
+        JMenuItem locationButton = new JMenuItem("位置");
         locationButton.addActionListener(e -> {
             try {
                 LocationPanel locationPanel = new LocationPanel()
@@ -143,8 +154,8 @@ public class MandelbrotApp extends JFrame {
         return locationButton;
     }
 
-    private JButton createSaveImgBtn() {
-        JButton saveImgBtn = new JButton("保存图像");
+    private JMenuItem createSaveImgBtn() {
+        JMenuItem saveImgBtn = new JMenuItem("图像");
 
         saveImgBtn.addActionListener(e -> {
             // 弹出文件选择对话框
@@ -170,8 +181,8 @@ public class MandelbrotApp extends JFrame {
         return saveImgBtn;
     }
 
-    private JButton createLoadBtn() {
-        JButton loadBtn = new JButton("加载");
+    private JMenuItem createLoadBtn() {
+        JMenuItem loadBtn = new JMenuItem("参数");
 
         loadBtn.addActionListener(e -> {
             // 弹出文件选择对话框
@@ -197,8 +208,8 @@ public class MandelbrotApp extends JFrame {
         return loadBtn;
     }
 
-    private JButton createSaveBtn() {
-        JButton saveBtn = new JButton("保存");
+    private JMenuItem createSaveBtn() {
+        JMenuItem saveBtn = new JMenuItem("参数");
 
         saveBtn.addActionListener(e -> {
             // 弹出文件选择对话框
@@ -276,8 +287,8 @@ class DrawingPanel extends JPanel {
     private boolean enabled;
 
     public DrawingPanel() throws Exception {
-        int width = 1920;
-        int height = 1920;
+        int width = 500;
+        int height = 500;
 
         // 创建一个BufferedImage
         image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);

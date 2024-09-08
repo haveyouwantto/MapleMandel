@@ -24,16 +24,42 @@ public class Complex {
         );
     }
 
+    public Complex mulMut(Complex c) {
+        double temp = re;
+        re = re * c.re - im * c.im;
+        im = temp * c.im + im * c.re;
+        return this;
+    }
+
     public Complex mul(double m) {
         return new Complex(re * m, im * m);
     }
+
+    public Complex mulMut(double m) {
+        re *= m;
+        im *= m;
+        return this;
+    }
+
 
     public Complex add(Complex other) {
         return new Complex(re + other.re, im + other.im);
     }
 
+    public Complex addMut(Complex c) {
+        re += c.re;
+        im += c.im;
+        return this;
+    }
+
     public Complex sub(Complex other) {
         return new Complex(re - other.re, im - other.im);
+    }
+
+    public Complex subMut(Complex c) {
+        re -= c.re;
+        im -= c.im;
+        return this;
     }
 
     public double getRe() {
@@ -46,7 +72,7 @@ public class Complex {
 
     @Override
     public String toString() {
-        return String.format("%g%+gi",re,im);
+        return String.format("%g%+gi", re, im);
     }
 
     public FloatExpComplex toFloatExp() {
@@ -54,5 +80,9 @@ public class Complex {
                 FloatExp.doubleToFloatExp(re),
                 FloatExp.doubleToFloatExp(im)
         );
+    }
+
+    public Complex copy()  {
+        return new Complex(re, im);
     }
 }
