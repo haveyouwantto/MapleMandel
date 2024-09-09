@@ -1,4 +1,8 @@
-package hywt.maplemandel;
+package hywt.maplemandel.ui;
+
+import hywt.maplemandel.core.*;
+import hywt.maplemandel.core.numtype.DeepComplex;
+import hywt.maplemandel.core.numtype.FloatExp;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -239,10 +243,10 @@ public class MandelbrotApp extends JFrame {
     private void update(Mandelbrot mandelbrot) {
         panel.repaint();
         MandelbrotStats stats = mandelbrot.getStats();
-        double guessed = (double) stats.guessed.get() / stats.totalPixels;
-        double ref = (double) stats.refIter.get() / mandelbrot.getMaxIter();
-        double approx = (double) stats.approx.get() / stats.refIter.get();
-        double percent = (double) stats.drawn.get() / stats.totalPixels;
+        double guessed = (double) stats.getGuessed().get() / stats.getTotalPixels();
+        double ref = (double) stats.getRefIter().get() / mandelbrot.getMaxIter();
+        double approx = (double) stats.getApprox().get() / stats.getRefIter().get();
+        double percent = (double) stats.getDrawn().get() / stats.getTotalPixels();
         label.setText(String.format("%.1f%%  Ref: %.1f%%  Approx: %.1f%%  Guessed: %.1f%%  Zoom: %s  It: %d  ", percent * 100, ref * 100, approx * 100, guessed * 100, new FloatExp(4).div(mandelbrot.getScale()).toFixed(3), mandelbrot.getMaxIter()));
     }
 
@@ -264,7 +268,7 @@ public class MandelbrotApp extends JFrame {
                         break;
                     }
                     int lastIt = mandelbrot.getMaxIter();
-                    int newIt = Math.max(2048, mandelbrot.getStats().approx.get() * 25);
+                    int newIt = Math.max(2048, mandelbrot.getStats().getApprox().get() * 25);
                     if (newIt < lastIt) mandelbrot.setMaxIter(newIt);
                     mandelbrot.zoomOut();
                     ord++;

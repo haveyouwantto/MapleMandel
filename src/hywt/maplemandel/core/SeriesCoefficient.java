@@ -1,4 +1,6 @@
-package hywt.maplemandel;
+package hywt.maplemandel.core;
+
+import hywt.maplemandel.core.numtype.FloatExpComplex;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package hywt.maplemandel;
+package hywt.maplemandel.core.numtype;
 
 public class Complex {
     private double re;

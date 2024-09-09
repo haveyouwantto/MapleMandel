@@ -1,4 +1,9 @@
-package hywt.maplemandel;
+package hywt.maplemandel.core;
+
+import hywt.maplemandel.core.numtype.Complex;
+import hywt.maplemandel.core.numtype.DeepComplex;
+import hywt.maplemandel.core.numtype.FloatExp;
+import hywt.maplemandel.core.numtype.FloatExpComplex;
 
 import java.awt.Graphics;
 import java.awt.Color;

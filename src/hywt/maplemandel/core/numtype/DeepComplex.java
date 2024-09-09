@@ -1,4 +1,4 @@
-package hywt.maplemandel;
+package hywt.maplemandel.core.numtype;
 
 import java.math.BigDecimal;
 import java.math.MathContext;

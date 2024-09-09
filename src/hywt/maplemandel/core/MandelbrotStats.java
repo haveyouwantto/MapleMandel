@@ -1,8 +1,8 @@
-package hywt.maplemandel;
+package hywt.maplemandel.core;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-class MandelbrotStats {
+public class MandelbrotStats {
     protected final int totalPixels;
     protected final AtomicInteger guessed;
     protected final AtomicInteger refIter;
@@ -23,6 +23,18 @@ class MandelbrotStats {
 
     public AtomicInteger getGuessed() {
         return guessed;
+    }
+
+    public AtomicInteger getRefIter() {
+        return refIter;
+    }
+
+    public AtomicInteger getApprox() {
+        return approx;
+    }
+
+    public AtomicInteger getDrawn() {
+        return drawn;
     }
 
     protected void reset() {

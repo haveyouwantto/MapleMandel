@@ -1,4 +1,4 @@
-package hywt.maplemandel;
+package hywt.maplemandel.core;
 
 public class Parcel<K, V>  {
     public final K key;

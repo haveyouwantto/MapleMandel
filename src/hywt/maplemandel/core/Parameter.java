@@ -1,4 +1,7 @@
-package hywt.maplemandel;
+package hywt.maplemandel.core;
+
+import hywt.maplemandel.core.numtype.DeepComplex;
+import hywt.maplemandel.core.numtype.FloatExp;
 
 import java.io.IOException;
 import java.io.InputStream;

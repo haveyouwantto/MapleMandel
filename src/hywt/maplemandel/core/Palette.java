@@ -1,4 +1,4 @@
-package hywt.maplemandel;
+package hywt.maplemandel.core;
 
 import java.awt.*;
 
