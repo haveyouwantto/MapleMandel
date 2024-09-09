@@ -116,6 +116,10 @@ public class Mandelbrot {
     }
 
     public void setMaxIter(int maxIter) {
+        if (maxIter > this.maxIter) {
+            calcRef = true;
+            clear();
+        }
         this.maxIter = maxIter;
     }
 
