@@ -4,11 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="add rectangular support and color abstraction">
-      <change afterPath="$PROJECT_DIR$/src/hywt/maplemandel/core/DrawCall.java" afterDir="false" />
+    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="make draw abstracted">
+      <change afterPath="$PROJECT_DIR$/src/hywt/maplemandel/core/RecalcFlags.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/core/Mandelbrot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/core/Mandelbrot.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/ui/MandelbrotApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/ui/MandelbrotApp.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -347,7 +346,15 @@
       <option name="project" value="LOCAL" />
       <updated>1725936886188</updated>
     </task>
-    <option name="localTasksCounter" value="32" />
+    <task id="LOCAL-00032" summary="make draw abstracted">
+      <option name="closed" value="true" />
+      <created>1725939023436</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1725939023436</updated>
+    </task>
+    <option name="localTasksCounter" value="33" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -362,7 +369,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="add bottom label updating" />
     <MESSAGE value="fix zoom conflict" />
     <MESSAGE value="add store image sequence" />
     <MESSAGE value="optimize locationpanel" />
@@ -387,6 +393,7 @@
     <MESSAGE value="fix recalculate reference when increasing iterations" />
     <MESSAGE value="restructured code" />
     <MESSAGE value="add rectangular support and color abstraction" />
-    <option name="LAST_COMMIT_MESSAGE" value="add rectangular support and color abstraction" />
+    <MESSAGE value="make draw abstracted" />
+    <option name="LAST_COMMIT_MESSAGE" value="make draw abstracted" />
   </component>
 </project>

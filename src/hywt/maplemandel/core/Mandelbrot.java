@@ -28,7 +28,7 @@ public class Mandelbrot {
     private List<FloatExpComplex> reference;
     private List<Complex> refComplex;
     private SeriesCoefficient coefficient;
-    private boolean calcRef;
+    private RecalcFlags flags;
 
     public Mandelbrot(int width, int height) {
         this.center = new DeepComplex(BigDecimal.ZERO, BigDecimal.ZERO);
@@ -46,7 +46,7 @@ public class Mandelbrot {
         executor = Executors.newFixedThreadPool(numThreads);
         drawing = false;
         futures = Collections.synchronizedList(new ArrayList<>());
-        calcRef = true;
+        flags = new RecalcFlags();
     }
 
     public FloatExpComplex getDelta(int x, int y) {
@@ -67,7 +67,10 @@ public class Mandelbrot {
         FloatExpComplex delta = getDelta(x, y);
         setScale(scale.div(4));
         center = center.add(delta.toDeepComplex());
-        calcRef = true;
+
+        flags.setReference(true);
+        flags.setApproximation(true);
+
         clearCache();
     }
 
@@ -75,13 +78,18 @@ public class Mandelbrot {
         FloatExpComplex delta = getDelta(x, y);
         setScale(scale.mul(4));
         center = center.add(delta.toDeepComplex());
-        calcRef = true;
+
+        flags.setReference(true);
+        flags.setApproximation(true);
+
         clearCache();
     }
 
     public void zoomIn() {
         setScale(scale.div(2));
-        calcRef = true;
+
+        flags.setReference(true);
+        flags.setApproximation(true);
     }
 
     public void zoomOut() {
@@ -101,13 +109,13 @@ public class Mandelbrot {
             clearCache();
         }
         setScale(this.scale.mul(scale));
-        calcRef = false;
+        flags.setApproximation(true);
     }
 
     public void gotoLocation(DeepComplex c, FloatExp scale) {
         this.center = c;
         setScale(scale);
-        calcRef = true;
+        flags.reset();
         clearCache();
     }
 
@@ -121,7 +129,8 @@ public class Mandelbrot {
 
     public void setMaxIter(int maxIter) {
         if (maxIter > this.maxIter) {
-            calcRef = true;
+            flags.setReference(true);
+            flags.setApproximation(true);
             clearCache();
         }
         this.maxIter = maxIter;
@@ -135,6 +144,7 @@ public class Mandelbrot {
         cancel();
         this.scale = scale;
         this.center.setPrecision(-scale.scale() + 10);
+        flags.setApproximation(true);
     }
 
     public void cancel() {
@@ -148,26 +158,32 @@ public class Mandelbrot {
         return drawing;
     }
 
+
+
     public synchronized void draw(DrawCall draw) {
         drawing = true;
         stats.reset();
         int width = draw.getWidth();
         int height = draw.getHeight();
 
-        if (calcRef) {
+        if (flags.isReference()) {
             stats.reset();
             reference = getReference(center);
             refComplex = reference.stream().map(FloatExpComplex::toComplex).toList();
+            flags.setReference(false);
         } else {
             stats.refIter.set(reference.size());
         }
 
-        coefficient = getSeriesCoefficient(reference, Arrays.asList(
-                getDelta(0, 0),
-                getDelta(0, height - 1),
-                getDelta(width - 1, 0),
-                getDelta(width - 1, height - 1)
-        ));
+        if (flags.isApproximation()) {
+            coefficient = getSeriesCoefficient(reference, Arrays.asList(
+                    getDelta(0, 0),
+                    getDelta(0, height - 1),
+                    getDelta(width - 1, 0),
+                    getDelta(width - 1, height - 1)
+            ));
+            flags.setApproximation(false);
+        }
         System.out.println(coefficient);
 
         // 先进行间隔计算
@@ -265,7 +281,6 @@ public class Mandelbrot {
         }
 
         drawing = false;
-        calcRef = false;
 
 
 //        double[][] diff = new double[width][height];
