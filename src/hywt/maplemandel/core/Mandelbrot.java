@@ -154,7 +154,6 @@ public class Mandelbrot {
     }
 
     public void cancel() {
-        System.out.println("cancel");
         drawing = false;
         synchronized (futures) {
             Iterator<Future<?>> iterator = futures.iterator();
@@ -186,8 +185,6 @@ public class Mandelbrot {
     }
 
     public synchronized void draw(DrawCall draw) {
-        System.out.println("draw");
-
         drawing = true;
         stats.reset();
         int width = draw.getWidth();
@@ -196,9 +193,6 @@ public class Mandelbrot {
         if (flags.isReference()) {
             stats.reset();
             reference = getReference(center);
-            if (Thread.currentThread().isInterrupted()) {
-                return; // Exit if the task was cancelled
-            }
 
             refComplex = new ArrayList<>();
             for (FloatExpComplex floatExp : reference) {
@@ -217,9 +211,6 @@ public class Mandelbrot {
                     getDeepDelta(width - 1, 0),
                     getDeepDelta(width - 1, height - 1)
             ));
-            if (Thread.currentThread().isInterrupted()) {
-                return; // Exit if the task was cancelled
-            }
             flags.setApproximation(false);
         }
         System.out.println(coefficient);
@@ -232,32 +223,31 @@ public class Mandelbrot {
         // 使用智能猜测填充左右像素
         for (int y = 0; y < height; y += 2) {
             int finalY = y;
-            futures.add(executor.submit(() -> {
-                for (int x = 1; x < width; x += 2) {
-                    if (iterations[x][finalY] == 0) {
-                        if (finalY < height - 1 && x < width - 1) {
-                            int left = iterations[x - 1][finalY];
-                            int right = iterations[x + 1][finalY];
-                            if (left == right) {
-                                iterations[x][finalY] = left;
-                                Color color = (left >= maxIter) ? Color.BLACK : Palette.getColor(left);
-                                draw.draw(x, finalY, 1, 2, color);
-                                stats.drawn.incrementAndGet();
-                                stats.guessed.incrementAndGet();
-                                continue;
-                            }
-                        }
-                        // 进行详细计算
-                        if (iterations[x][finalY] == 0) {
-                            calc(x, finalY, draw, 1, 2);
+            for (int x = 1; x < width; x += 2) {
+                if (iterations[x][finalY] == 0) {
+                    if (finalY < height - 1 && x < width - 1) {
+                        int left = iterations[x - 1][finalY];
+                        int right = iterations[x + 1][finalY];
+                        if (left == right) {
+                            iterations[x][finalY] = left;
+                            Color color = (left >= maxIter) ? Color.BLACK : Palette.getColor(left);
+                            draw.draw(x, finalY, 1, 2, color);
                             stats.drawn.incrementAndGet();
+                            stats.guessed.incrementAndGet();
+                            continue;
                         }
                     }
-                    if (Thread.currentThread().isInterrupted()) {
-                        return; // Exit if the task was cancelled
+                    // 进行详细计算
+                    if (iterations[x][finalY] == 0) {
+                        calc(x, finalY, draw, 1, 2);
+                        stats.drawn.incrementAndGet();
                     }
                 }
-            }));
+                if (Thread.currentThread().isInterrupted()) return;
+            }
+//            futures.add(executor.submit(() -> {
+//
+//            }));
         }
 
         try {
@@ -271,29 +261,31 @@ public class Mandelbrot {
         // 使用智能猜测填充上下像素
         for (int y = 1; y < height; y += 2) {
             int finalY = y;
-            futures.add(executor.submit(() -> {
-                for (int x = 0; x < width; x++) {
-                    if (iterations[x][finalY] == 0) {
-                        if (x < width - 1 && finalY < height - 1) {
-                            int top = iterations[x][finalY - 1];
-                            int bottom = iterations[x][finalY + 1];
-                            if (top == bottom) {
-                                iterations[x][finalY] = top;
-                                Color color = (top >= maxIter) ? Color.BLACK : Palette.getColor(top);
-                                draw.draw(x, finalY, color);
-                                stats.drawn.incrementAndGet();
-                                stats.guessed.incrementAndGet();
-                                continue;
-                            }
-                        }
-                        // 进行详细计算
-                        if (iterations[x][finalY] == 0) {
-                            calc(x, finalY, draw, 1, 1);
+            for (int x = 0; x < width; x++) {
+                if (iterations[x][finalY] == 0) {
+                    if (x < width - 1 && finalY < height - 1) {
+                        int top = iterations[x][finalY - 1];
+                        int bottom = iterations[x][finalY + 1];
+                        if (top == bottom) {
+                            iterations[x][finalY] = top;
+                            Color color = (top >= maxIter) ? Color.BLACK : Palette.getColor(top);
+                            draw.draw(x, finalY, color);
                             stats.drawn.incrementAndGet();
+                            stats.guessed.incrementAndGet();
+                            continue;
                         }
                     }
+                    // 进行详细计算
+                    if (iterations[x][finalY] == 0) {
+                        calc(x, finalY, draw, 1, 1);
+                        stats.drawn.incrementAndGet();
+                    }
                 }
-            }));
+                if (Thread.currentThread().isInterrupted()) return;
+            }
+//            futures.add(executor.submit(() -> {
+//
+//            }));
         }
 
         try {
@@ -372,17 +364,22 @@ public class Mandelbrot {
     private void refine(DrawCall draw, int startX, int startY, int stepX, int stepY, int drawWidth, int drawHeight) {
         for (int y = startY; y < height; y += stepY) {
             int finalY = y;
-            futures.add(executor.submit(() -> {
-                for (int x = startX; x < width; x += stepX) {
-                    if (iterations[x][finalY] == 0) {
-                        calc(x, finalY, draw, drawWidth, drawHeight);
-                    }
-                    stats.drawn.incrementAndGet();
-                    if (Thread.currentThread().isInterrupted()) {
-                        return; // Exit if the task was cancelled
-                    }
+            for (int x = startX; x < width; x += stepX) {
+                if (iterations[x][finalY] == 0) {
+                    calc(x, finalY, draw, drawWidth, drawHeight);
                 }
-            }));
+                stats.drawn.incrementAndGet();
+                if (Thread.currentThread().isInterrupted()) return;
+            }
+//            futures.add(executor.submit(() -> {
+//                for (int x = startX; x < width; x += stepX) {
+//                    if (iterations[x][finalY] == 0) {
+//                        calc(x, finalY, draw, drawWidth, drawHeight);
+//                    }
+//                    stats.drawn.incrementAndGet();
+//                    if (Thread.currentThread().isInterrupted()) return;
+//                }
+//            }));
         }
 
         try {
@@ -489,9 +486,6 @@ public class Mandelbrot {
 
             z = new DeepComplex(x, y).setPrecision(precision);
             stats.refIter.incrementAndGet();
-            if (Thread.currentThread().isInterrupted()) {
-                return null; // Exit if the task was cancelled
-            }
         }
         return referencePoints;
     }
@@ -520,9 +514,6 @@ public class Mandelbrot {
                     iterV.set(i, v2);
                 }
                 stats.approx.incrementAndGet();
-                if (Thread.currentThread().isInterrupted()) {
-                    return null; // Exit if the task was cancelled
-                }
             }
         } catch (ArithmeticException e) {
 

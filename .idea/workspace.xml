@@ -10,9 +10,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="attempt to fix cancel()">
+    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="attempt to fix cancel() 2">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MapleMandelApp/src/hywt/maplemandel/ui/MandelbrotApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/MapleMandelApp/src/hywt/maplemandel/ui/MandelbrotApp.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/core/Mandelbrot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/core/Mandelbrot.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -401,7 +400,15 @@
       <option name="project" value="LOCAL" />
       <updated>1725945138059</updated>
     </task>
-    <option name="localTasksCounter" value="37" />
+    <task id="LOCAL-00037" summary="attempt to fix cancel() 2">
+      <option name="closed" value="true" />
+      <created>1725964283168</created>
+      <option name="number" value="00037" />
+      <option name="presentableId" value="LOCAL-00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1725964283168</updated>
+    </task>
+    <option name="localTasksCounter" value="38" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -416,7 +423,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="add save/load" />
     <MESSAGE value="8.3" />
     <MESSAGE value="generalize coeff computation" />
     <MESSAGE value="8.2" />
@@ -441,6 +447,7 @@
     <MESSAGE value="extract modules" />
     <MESSAGE value="add app builds" />
     <MESSAGE value="attempt to fix cancel()" />
-    <option name="LAST_COMMIT_MESSAGE" value="attempt to fix cancel()" />
+    <MESSAGE value="attempt to fix cancel() 2" />
+    <option name="LAST_COMMIT_MESSAGE" value="attempt to fix cancel() 2" />
   </component>
 </project>
