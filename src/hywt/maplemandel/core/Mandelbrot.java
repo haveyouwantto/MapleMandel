@@ -49,7 +49,7 @@ public class Mandelbrot {
         flags = new RecalcFlags();
     }
 
-    public FloatExpComplex getDelta(int x, int y) {
+    public FloatExpComplex getDelta(double x, double y) {
         double deltaX = (x - width / 2.0) * baseStep;
         double deltaY = (height / 2.0 - y) * baseStep;
         return new FloatExpComplex(scale.mul(deltaX), scale.mul(deltaY));
@@ -148,13 +148,17 @@ public class Mandelbrot {
     }
 
     public void cancel() {
+        synchronized (futures) {
+            Iterator<Future<?>> iterator = futures.iterator();
+            while (iterator.hasNext()) {
+                Future<?> future = iterator.next();
+                future.cancel(true);
+                iterator.remove(); // Remove the future after it's canceled to avoid ConcurrentModificationException
+            }
+        }
         if (mandelThread != null) {
             mandelThread.interrupt();
         }
-        for (Future<?> future : futures) {
-            future.cancel(true);
-        }
-        futures.clear();
     }
 
     public boolean isDrawing() {
@@ -185,7 +189,12 @@ public class Mandelbrot {
             if (Thread.currentThread().isInterrupted()) {
                 return; // Exit if the task was cancelled
             }
-            refComplex = reference.stream().map(FloatExpComplex::toComplex).toList();
+
+            refComplex = new ArrayList<>();
+            for (FloatExpComplex floatExp : reference) {
+                refComplex.add(floatExp.toComplex());
+            }
+
             flags.setReference(false);
         } else {
             stats.refIter.set(reference.size());
@@ -242,16 +251,7 @@ public class Mandelbrot {
         }
 
         try {
-            for (Future<?> future : futures) {
-                try {
-                    future.get();
-                } catch (CancellationException e) {
-                } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
-                } catch (ConcurrentModificationException e) {
-                    return;
-                }
-            }
+            if (waitUntilDone()) return;
         } catch (ConcurrentModificationException e) {
             return;
         }
@@ -287,14 +287,7 @@ public class Mandelbrot {
         }
 
         try {
-            for (Future<?> future : futures) {
-                try {
-                    future.get();
-                } catch (CancellationException e) {
-                } catch (InterruptedException | ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
+            waitUntilDone();
         } catch (ConcurrentModificationException e) {
             return;
         }
@@ -332,6 +325,25 @@ public class Mandelbrot {
 //        }
     }
 
+    private boolean waitUntilDone() {
+        synchronized (futures) {
+            Iterator<Future<?>> it = futures.listIterator();
+            while (it.hasNext()) {
+                try {
+                    Future<?> future = it.next();
+                    future.get();
+                    it.remove();
+                } catch (CancellationException e) {
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                } catch (ConcurrentModificationException e) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     private void successiveRefinement(DrawCall draw, int startSize) {
         int step = startSize;
 
@@ -367,15 +379,7 @@ public class Mandelbrot {
         }
 
         try {
-            for (Future<?> future : futures) {
-                try {
-                    future.get();
-                } catch (CancellationException | InterruptedException e) {
-                    return;
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                }
-            }
+            waitUntilDone();
         } catch (ConcurrentModificationException e) {
         }
     }
