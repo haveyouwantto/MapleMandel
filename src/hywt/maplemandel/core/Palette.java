@@ -1,7 +1,5 @@
 package hywt.maplemandel.core;
 
-import java.awt.*;
-
 public class Palette {
 
     private static int[][] palette = /*{

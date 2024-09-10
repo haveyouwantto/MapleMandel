@@ -4,22 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="fix recalculate reference when increasing iterations">
+    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="restructured code">
+      <change afterPath="$PROJECT_DIR$/src/hywt/maplemandel/core/Color.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/hywt/maplemandel/ui/Utils.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/Complex.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/core/numtype/Complex.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/DeepComplex.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/core/numtype/DeepComplex.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/FloatExp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/core/numtype/FloatExp.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/FloatExpComplex.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/core/numtype/FloatExpComplex.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/LocationPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/ui/LocationPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/Mandelbrot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/core/Mandelbrot.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/MandelbrotApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/ui/MandelbrotApp.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/MandelbrotStats.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/core/MandelbrotStats.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/Palette.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/core/Palette.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/Parameter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/core/Parameter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/Parcel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/core/Parcel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/ScrollTextArea.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/core/ScrollTextArea.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/SeriesCoefficient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/core/SeriesCoefficient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/core/Mandelbrot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/core/Mandelbrot.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/core/Palette.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/core/Palette.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/ui/MandelbrotApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/ui/MandelbrotApp.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -342,7 +333,15 @@
       <option name="project" value="LOCAL" />
       <updated>1725893442351</updated>
     </task>
-    <option name="localTasksCounter" value="30" />
+    <task id="LOCAL-00030" summary="restructured code">
+      <option name="closed" value="true" />
+      <created>1725894123255</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1725894123255</updated>
+    </task>
+    <option name="localTasksCounter" value="31" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -357,7 +356,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="7.3" />
     <MESSAGE value="after 7 optimization" />
     <MESSAGE value="add bottom label updating" />
     <MESSAGE value="fix zoom conflict" />
@@ -382,6 +380,7 @@
     <MESSAGE value="add successive refinement" />
     <MESSAGE value="fix reuse center and guessing" />
     <MESSAGE value="fix recalculate reference when increasing iterations" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix recalculate reference when increasing iterations" />
+    <MESSAGE value="restructured code" />
+    <option name="LAST_COMMIT_MESSAGE" value="restructured code" />
   </component>
 </project>

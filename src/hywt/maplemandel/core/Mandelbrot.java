@@ -4,9 +4,9 @@ import hywt.maplemandel.core.numtype.Complex;
 import hywt.maplemandel.core.numtype.DeepComplex;
 import hywt.maplemandel.core.numtype.FloatExp;
 import hywt.maplemandel.core.numtype.FloatExpComplex;
+import hywt.maplemandel.ui.Utils;
 
 import java.awt.Graphics;
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -23,6 +23,7 @@ public class Mandelbrot {
     private MandelbrotStats stats;
     private int width;
     private int height;
+    private double baseStep;
     private boolean drawing;
 
     // 创建线程池
@@ -40,6 +41,8 @@ public class Mandelbrot {
         this.iterations = new int[width][height];
         this.width = width;
         this.height = height;
+        int min = Math.min(width, height);
+        baseStep = 1d / min;
 
         this.stats = new MandelbrotStats(width * height);
 
@@ -51,8 +54,8 @@ public class Mandelbrot {
     }
 
     public FloatExpComplex getDelta(int x, int y) {
-        double deltaX = (x - width / 2.0) / width;
-        double deltaY = (height / 2.0 - y) / height;
+        double deltaX = (x - width / 2.0) * baseStep;
+        double deltaY = (height / 2.0 - y) * baseStep;
         return new FloatExpComplex(scale.mul(deltaX), scale.mul(deltaY));
     }
 
@@ -189,7 +192,7 @@ public class Mandelbrot {
                             if (left == right) {
                                 iterations[x][finalY] = left;
                                 Color color = (left >= maxIter) ? Color.BLACK : Palette.getColor(left);
-                                finalG.setColor(color);
+                                finalG.setColor(Utils.toAwtColor(color));
                                 finalG.fillRect(x, finalY, 1, 2);
                                 stats.drawn.incrementAndGet();
                                 stats.guessed.incrementAndGet();
@@ -356,7 +359,7 @@ public class Mandelbrot {
         iterations[x][y] = iter;
 
         Color color = (iter >= maxIter) ? Color.BLACK : Palette.getColor(iter);
-        g.setColor(color);
+        g.setColor(Utils.toAwtColor(color));
         g.fillRect(x, y, w, h);
     }
 

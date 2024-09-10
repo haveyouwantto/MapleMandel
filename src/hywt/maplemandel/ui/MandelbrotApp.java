@@ -24,15 +24,13 @@ public class MandelbrotApp extends JFrame {
         // 创建一个JFrame窗口
         super("MapleMandel");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(500, 500);
+//        setSize(500, 500);
         setLocationRelativeTo(null);
 
         // 创建并添加一个绘图面板
         panel = new DrawingPanel();
+        panel.setPreferredSize(new Dimension(640,360));
         add(panel);
-
-        // 显示窗口
-        setVisible(true);
 
 
         // 创建工具栏并添加保存按钮
@@ -99,6 +97,9 @@ public class MandelbrotApp extends JFrame {
         getContentPane().add(toolBar, BorderLayout.NORTH);
         getContentPane().add(label, BorderLayout.SOUTH);
 
+        pack();
+        // 显示窗口
+        setVisible(true);
 
         Thread drawThread = new Thread(() -> {
             try {
@@ -291,8 +292,8 @@ class DrawingPanel extends JPanel {
     private boolean enabled;
 
     public DrawingPanel() throws Exception {
-        int width = 500;
-        int height = 500;
+        int width = 640;
+        int height = 360;
 
         // 创建一个BufferedImage
         image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
