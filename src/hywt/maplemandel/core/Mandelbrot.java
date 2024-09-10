@@ -13,7 +13,7 @@ import java.util.concurrent.*;
 public class Mandelbrot {
 
     private static final BigDecimal ESCAPE_RADIUS = new BigDecimal(1000);
-    ExecutorService executor;
+    private ThreadPoolExecutor executor;
     private DeepComplex center;
     private FloatExp scale;
     private int maxIter;
@@ -42,14 +42,21 @@ public class Mandelbrot {
 
         this.stats = new MandelbrotStats(width * height);
 
-        int numThreads = Runtime.getRuntime().availableProcessors();
-        executor = Executors.newFixedThreadPool(numThreads);
         drawing = false;
         futures = Collections.synchronizedList(new ArrayList<>());
         flags = new RecalcFlags();
+        int numThreads = Runtime.getRuntime().availableProcessors();
+        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(numThreads);
     }
 
-    public FloatExpComplex getDelta(double x, double y) {
+    public Complex getDelta(double x, double y) {
+        double scale = this.scale.doubleValue();
+        double deltaX = (x - width / 2.0) * baseStep;
+        double deltaY = (height / 2.0 - y) * baseStep;
+        return new Complex(scale * deltaX, scale * deltaY);
+    }
+
+    public FloatExpComplex getDeepDelta(double x, double y) {
         double deltaX = (x - width / 2.0) * baseStep;
         double deltaY = (height / 2.0 - y) * baseStep;
         return new FloatExpComplex(scale.mul(deltaX), scale.mul(deltaY));
@@ -64,7 +71,7 @@ public class Mandelbrot {
     }
 
     public void zoomIn(int x, int y) {
-        FloatExpComplex delta = getDelta(x, y);
+        FloatExpComplex delta = getDeepDelta(x, y);
         setScale(scale.div(4));
         center = center.add(delta.toDeepComplex());
 
@@ -75,7 +82,7 @@ public class Mandelbrot {
     }
 
     public void zoomOut(int x, int y) {
-        FloatExpComplex delta = getDelta(x, y);
+        FloatExpComplex delta = getDeepDelta(x, y);
         setScale(scale.mul(4));
         center = center.add(delta.toDeepComplex());
 
@@ -141,13 +148,14 @@ public class Mandelbrot {
     }
 
     public void setScale(FloatExp scale) {
-        cancel();
         this.scale = scale;
         this.center.setPrecision(-scale.scale() + 10);
         flags.setApproximation(true);
     }
 
     public void cancel() {
+        System.out.println("cancel");
+        drawing = false;
         synchronized (futures) {
             Iterator<Future<?>> iterator = futures.iterator();
             while (iterator.hasNext()) {
@@ -178,6 +186,8 @@ public class Mandelbrot {
     }
 
     public synchronized void draw(DrawCall draw) {
+        System.out.println("draw");
+
         drawing = true;
         stats.reset();
         int width = draw.getWidth();
@@ -202,10 +212,10 @@ public class Mandelbrot {
 
         if (flags.isApproximation()) {
             coefficient = getSeriesCoefficient(reference, Arrays.asList(
-                    getDelta(0, 0),
-                    getDelta(0, height - 1),
-                    getDelta(width - 1, 0),
-                    getDelta(width - 1, height - 1)
+                    getDeepDelta(0, 0),
+                    getDeepDelta(0, height - 1),
+                    getDeepDelta(width - 1, 0),
+                    getDeepDelta(width - 1, height - 1)
             ));
             if (Thread.currentThread().isInterrupted()) {
                 return; // Exit if the task was cancelled
@@ -251,7 +261,7 @@ public class Mandelbrot {
         }
 
         try {
-            if (waitUntilDone()) return;
+           waitUntilDone();
         } catch (ConcurrentModificationException e) {
             return;
         }
@@ -325,7 +335,7 @@ public class Mandelbrot {
 //        }
     }
 
-    private boolean waitUntilDone() {
+    private void waitUntilDone() {
         synchronized (futures) {
             Iterator<Future<?>> it = futures.listIterator();
             while (it.hasNext()) {
@@ -334,14 +344,11 @@ public class Mandelbrot {
                     future.get();
                     it.remove();
                 } catch (CancellationException e) {
-                } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
-                } catch (ConcurrentModificationException e) {
-                    return true;
+                } catch (InterruptedException | ExecutionException | ConcurrentModificationException e) {
+                    return;
                 }
             }
         }
-        return false;
     }
 
     private void successiveRefinement(DrawCall draw, int startSize) {
@@ -385,8 +392,8 @@ public class Mandelbrot {
     }
 
     private void calc(int x, int y, DrawCall draw, int w, int h) {
-        FloatExpComplex c = getDelta(x, y);
-        int iter = 0;
+        FloatExpComplex c = getDeepDelta(x, y);
+        int iter;
         if (coefficient.getIterationCount() > 2) {
             FloatExpComplex approx = approximate(coefficient, c);
             if (scale.compareTo(new FloatExp(1, -320)) > 0) {

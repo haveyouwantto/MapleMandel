@@ -10,8 +10,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="add app builds">
+    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="attempt to fix cancel()">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MapleMandelApp/src/hywt/maplemandel/ui/MandelbrotApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/MapleMandelApp/src/hywt/maplemandel/ui/MandelbrotApp.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/core/Mandelbrot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/core/Mandelbrot.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -392,7 +393,15 @@
       <option name="project" value="LOCAL" />
       <updated>1725940522611</updated>
     </task>
-    <option name="localTasksCounter" value="36" />
+    <task id="LOCAL-00036" summary="attempt to fix cancel()">
+      <option name="closed" value="true" />
+      <created>1725945138059</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1725945138059</updated>
+    </task>
+    <option name="localTasksCounter" value="37" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -407,7 +416,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="fix zoomout image" />
     <MESSAGE value="add save/load" />
     <MESSAGE value="8.3" />
     <MESSAGE value="generalize coeff computation" />
@@ -432,6 +440,7 @@
     <MESSAGE value="add RecalcFlags" />
     <MESSAGE value="extract modules" />
     <MESSAGE value="add app builds" />
-    <option name="LAST_COMMIT_MESSAGE" value="add app builds" />
+    <MESSAGE value="attempt to fix cancel()" />
+    <option name="LAST_COMMIT_MESSAGE" value="attempt to fix cancel()" />
   </component>
 </project>
