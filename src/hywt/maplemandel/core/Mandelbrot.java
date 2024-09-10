@@ -6,8 +6,6 @@ import hywt.maplemandel.core.numtype.FloatExp;
 import hywt.maplemandel.core.numtype.FloatExpComplex;
 import hywt.maplemandel.ui.Utils;
 
-import java.awt.Graphics;
-import java.awt.image.BufferedImage;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.util.*;
@@ -15,19 +13,17 @@ import java.util.concurrent.*;
 
 public class Mandelbrot {
 
+    private static final BigDecimal ESCAPE_RADIUS = new BigDecimal(1000);
+    ExecutorService executor;
     private DeepComplex center;
     private FloatExp scale;
     private int maxIter;
     private int[][] iterations;
-
     private MandelbrotStats stats;
     private int width;
     private int height;
     private double baseStep;
     private boolean drawing;
-
-    // 创建线程池
-    ExecutorService executor;
     private List<Future<?>> futures;
     private List<FloatExpComplex> reference;
     private List<Complex> refComplex;
@@ -59,7 +55,7 @@ public class Mandelbrot {
         return new FloatExpComplex(scale.mul(deltaX), scale.mul(deltaY));
     }
 
-    private void clear() {
+    private void clearCache() {
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 iterations[x][y] = 0;
@@ -72,7 +68,7 @@ public class Mandelbrot {
         setScale(scale.div(4));
         center = center.add(delta.toDeepComplex());
         calcRef = true;
-        clear();
+        clearCache();
     }
 
     public void zoomOut(int x, int y) {
@@ -80,7 +76,7 @@ public class Mandelbrot {
         setScale(scale.mul(4));
         center = center.add(delta.toDeepComplex());
         calcRef = true;
-        clear();
+        clearCache();
     }
 
     public void zoomIn() {
@@ -102,7 +98,7 @@ public class Mandelbrot {
             }
             iterations = newMap;
         } else {
-            clear();
+            clearCache();
         }
         setScale(this.scale.mul(scale));
         calcRef = false;
@@ -112,7 +108,7 @@ public class Mandelbrot {
         this.center = c;
         setScale(scale);
         calcRef = true;
-        clear();
+        clearCache();
     }
 
     public DeepComplex getCenter() {
@@ -126,7 +122,7 @@ public class Mandelbrot {
     public void setMaxIter(int maxIter) {
         if (maxIter > this.maxIter) {
             calcRef = true;
-            clear();
+            clearCache();
         }
         this.maxIter = maxIter;
     }
@@ -152,11 +148,11 @@ public class Mandelbrot {
         return drawing;
     }
 
-    public synchronized void draw(BufferedImage image) {
+    public synchronized void draw(DrawCall draw) {
         drawing = true;
         stats.reset();
-        int width = image.getWidth();
-        int height = image.getHeight();
+        int width = draw.getWidth();
+        int height = draw.getHeight();
 
         if (calcRef) {
             stats.reset();
@@ -175,7 +171,7 @@ public class Mandelbrot {
         System.out.println(coefficient);
 
         // 先进行间隔计算
-        successiveRefinement(image, 64);
+        successiveRefinement(draw, 32);
 
         if (!drawing) return;
 
@@ -183,7 +179,6 @@ public class Mandelbrot {
         for (int y = 0; y < height; y += 2) {
             int finalY = y;
             futures.add(executor.submit(() -> {
-                Graphics finalG = image.getGraphics();
                 for (int x = 1; x < width; x += 2) {
                     if (iterations[x][finalY] == 0) {
                         if (finalY < height - 1 && x < width - 1) {
@@ -192,8 +187,7 @@ public class Mandelbrot {
                             if (left == right) {
                                 iterations[x][finalY] = left;
                                 Color color = (left >= maxIter) ? Color.BLACK : Palette.getColor(left);
-                                finalG.setColor(Utils.toAwtColor(color));
-                                finalG.fillRect(x, finalY, 1, 2);
+                                draw.draw(x, finalY, 1, 2, color);
                                 stats.drawn.incrementAndGet();
                                 stats.guessed.incrementAndGet();
                                 continue;
@@ -201,21 +195,30 @@ public class Mandelbrot {
                         }
                         // 进行详细计算
                         if (iterations[x][finalY] == 0) {
-                            calc(x, finalY, finalG, 1, 2);
+                            calc(x, finalY, draw, 1, 2);
                             stats.drawn.incrementAndGet();
                         }
+                    }
+                    if (Thread.currentThread().isInterrupted()) {
+                        return; // Exit if the task was cancelled
                     }
                 }
             }));
         }
 
-        for (Future<?> future : futures) {
-            try {
-                future.get();
-            } catch (CancellationException e) {
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
+        try {
+            for (Future<?> future : futures) {
+                try {
+                    future.get();
+                } catch (CancellationException e) {
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                } catch (ConcurrentModificationException e) {
+                    return;
+                }
             }
+        } catch (ConcurrentModificationException e) {
+            return;
         }
 
         if (!drawing) return;
@@ -224,7 +227,6 @@ public class Mandelbrot {
         for (int y = 1; y < height; y += 2) {
             int finalY = y;
             futures.add(executor.submit(() -> {
-                Graphics finalG = image.getGraphics();
                 for (int x = 0; x < width; x++) {
                     if (iterations[x][finalY] == 0) {
                         if (x < width - 1 && finalY < height - 1) {
@@ -233,7 +235,7 @@ public class Mandelbrot {
                             if (top == bottom) {
                                 iterations[x][finalY] = top;
                                 Color color = (top >= maxIter) ? Color.BLACK : Palette.getColor(top);
-                                image.setRGB(x, finalY, color.getRGB());
+                                draw.draw(x, finalY, color);
                                 stats.drawn.incrementAndGet();
                                 stats.guessed.incrementAndGet();
                                 continue;
@@ -241,7 +243,7 @@ public class Mandelbrot {
                         }
                         // 进行详细计算
                         if (iterations[x][finalY] == 0) {
-                            calc(x, finalY, finalG, 1, 1);
+                            calc(x, finalY, draw, 1, 1);
                             stats.drawn.incrementAndGet();
                         }
                     }
@@ -249,13 +251,17 @@ public class Mandelbrot {
             }));
         }
 
-        for (Future<?> future : futures) {
-            try {
-                future.get();
-            } catch (CancellationException e) {
-            } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
+        try {
+            for (Future<?> future : futures) {
+                try {
+                    future.get();
+                } catch (CancellationException e) {
+                } catch (InterruptedException | ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
             }
+        } catch (ConcurrentModificationException e) {
+            return;
         }
 
         drawing = false;
@@ -272,17 +278,17 @@ public class Mandelbrot {
 //        }
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                image.setRGB(x, y, ((iterations[x][y] >= maxIter) ?
+                draw.draw(x, y, ((iterations[x][y] >= maxIter) ?
                         Color.BLACK :
                         Palette.getColor(
                                 iterations[x][y]
                         )
-                ).getRGB());
+                ));
             }
         }
 //        for (int x = 0; x < width; x++) {
 //            for (int y = 0; y < height; y++) {
-//                image.setRGB(x, y, ((iterations[x][y] >= maxIter) ?
+//                draw.setRGB(x, y, ((iterations[x][y] >= maxIter) ?
 //                        Color.BLACK :
 //                        Palette.getColor(
 //                                (Math.log(diff[x][y]+1)-1)*6
@@ -292,49 +298,55 @@ public class Mandelbrot {
 //        }
     }
 
-    private void successiveRefinement(BufferedImage image, int startSize) {
+    private void successiveRefinement(DrawCall draw, int startSize) {
         int step = startSize;
 
         // Initial refinement
-        refine(image, 0, 0, step, step, step, step);
+        refine(draw, 0, 0, step, step, step, step);
 
         // Loop to progressively refine
         while (step > 2) { // Assuming we stop refining at a 1x1 pixel grid
             int halfStep = step >> 1; // Calculate half step size
 
             // Refine quadrants
-            refine(image, halfStep, 0, step, step, halfStep, step);
-            refine(image, 0, halfStep, halfStep, step, halfStep, halfStep);
+            refine(draw, halfStep, 0, step, step, halfStep, step);
+            refine(draw, 0, halfStep, halfStep, step, halfStep, halfStep);
 
             step = halfStep; // Halve the step size to refine further
         }
     }
 
-    private void refine(BufferedImage image, int startX, int startY, int stepX, int stepY, int drawWidth, int drawHeight) {
+    private void refine(DrawCall draw, int startX, int startY, int stepX, int stepY, int drawWidth, int drawHeight) {
         for (int y = startY; y < height; y += stepY) {
             int finalY = y;
             futures.add(executor.submit(() -> {
-                Graphics finalG = image.getGraphics();
                 for (int x = startX; x < width; x += stepX) {
                     if (iterations[x][finalY] == 0) {
-                        calc(x, finalY, finalG, drawWidth, drawHeight);
+                        calc(x, finalY, draw, drawWidth, drawHeight);
                     }
                     stats.drawn.incrementAndGet();
+                    if (Thread.currentThread().isInterrupted()) {
+                        return; // Exit if the task was cancelled
+                    }
                 }
             }));
         }
 
-        for (Future<?> future : futures) {
-            try {
-                future.get();
-            } catch (CancellationException e) {
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
+        try {
+            for (Future<?> future : futures) {
+                try {
+                    future.get();
+                } catch (CancellationException e) {
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                }
             }
+        } catch (ConcurrentModificationException e) {
+            return;
         }
     }
 
-    private void calc(int x, int y, Graphics g, int w, int h) {
+    private void calc(int x, int y, DrawCall draw, int w, int h) {
         FloatExpComplex c = getDelta(x, y);
         int iter = 0;
         if (coefficient.getIterationCount() > 2) {
@@ -359,13 +371,11 @@ public class Mandelbrot {
         iterations[x][y] = iter;
 
         Color color = (iter >= maxIter) ? Color.BLACK : Palette.getColor(iter);
-        g.setColor(Utils.toAwtColor(color));
-        g.fillRect(x, y, w, h);
+        draw.draw(x, y, w, h, color);
     }
 
-
     // 获取迭代次数的方法
-    public int getIter(double cRe, double cIm) {
+    private int getIter(double cRe, double cIm) {
         double zRe = 0.0;
         double zIm = 0.0;
         int iter;
@@ -411,10 +421,7 @@ public class Mandelbrot {
         setMaxIter(p.iterations);
     }
 
-
-    private static final BigDecimal ESCAPE_RADIUS = new BigDecimal(1000);
-
-    public List<FloatExpComplex> getReference(DeepComplex c) {
+    private List<FloatExpComplex> getReference(DeepComplex c) {
         List<FloatExpComplex> referencePoints = new ArrayList<>();
         int precision = -scale.scale() + 10;
         DeepComplex z = new DeepComplex(0, 0).setPrecision(precision);
@@ -441,7 +448,7 @@ public class Mandelbrot {
         return referencePoints;
     }
 
-    public SeriesCoefficient getSeriesCoefficient(List<FloatExpComplex> reference, List<FloatExpComplex> validation) {
+    private SeriesCoefficient getSeriesCoefficient(List<FloatExpComplex> reference, List<FloatExpComplex> validation) {
         SeriesCoefficient coeff = new SeriesCoefficient(6);
         List<FloatExpComplex> iterV = new ArrayList<>(validation);
         try {
@@ -472,7 +479,7 @@ public class Mandelbrot {
         return new SeriesCoefficient(4);
     }
 
-    public FloatExpComplex approximate(SeriesCoefficient coeff, FloatExpComplex c) {
+    private FloatExpComplex approximate(SeriesCoefficient coeff, FloatExpComplex c) {
         FloatExpComplex result = new FloatExpComplex(0, 0);
         FloatExpComplex cn = c.copy();
         for (int i = 0; i < coeff.getTerms(); i++) {
@@ -482,11 +489,11 @@ public class Mandelbrot {
         return result;
     }
 
-    public int getPTIter(Complex origin, List<Complex> reference) {
+    private int getPTIter(Complex origin, List<Complex> reference) {
         return getPTIter(new Complex(0, 0), origin, reference, 0);
     }
 
-    public int getPTIter(Complex delta, Complex origin, List<Complex> reference, int start) {
+    private int getPTIter(Complex delta, Complex origin, List<Complex> reference, int start) {
         double dRe = delta.getRe();
         double dIm = delta.getIm();
         double tmp;
@@ -519,7 +526,7 @@ public class Mandelbrot {
     }
 
 
-    public Parcel<Integer, FloatExpComplex> getPTIterFloatExp(FloatExpComplex delta, FloatExpComplex origin, List<FloatExpComplex> reference, int start) {
+    private Parcel<Integer, FloatExpComplex> getPTIterFloatExp(FloatExpComplex delta, FloatExpComplex origin, List<FloatExpComplex> reference, int start) {
         FloatExpComplex tmp;
 
 

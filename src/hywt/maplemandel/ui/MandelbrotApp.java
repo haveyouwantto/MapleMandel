@@ -1,6 +1,7 @@
 package hywt.maplemandel.ui;
 
 import hywt.maplemandel.core.*;
+import hywt.maplemandel.core.Color;
 import hywt.maplemandel.core.numtype.DeepComplex;
 import hywt.maplemandel.core.numtype.FloatExp;
 
@@ -290,6 +291,7 @@ class DrawingPanel extends JPanel {
     private Mandelbrot mandelbrot;
     private Callable<Void> onComplete;
     private boolean enabled;
+    private DrawCall draw;
 
     public DrawingPanel() throws Exception {
         int width = 640;
@@ -297,6 +299,20 @@ class DrawingPanel extends JPanel {
 
         // 创建一个BufferedImage
         image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2d = image.createGraphics();
+        draw = new DrawCall(image.getWidth(), image.getHeight()) {
+            @Override
+            public synchronized void draw(int x, int y, int w, int h, Color c) {
+                g2d.setColor(Utils.toAwtColor(c));
+                g2d.fillRect(x,y,w,h);
+            }
+
+            @Override
+            public synchronized void draw(int x, int y, Color c) {
+                image.setRGB(x,y,c.getRGB());
+            }
+        };
+
         mandelbrot = new Mandelbrot(width, height);
         enabled = true;
 
@@ -374,7 +390,7 @@ class DrawingPanel extends JPanel {
 
     public void startDrawSync() throws Exception {
         mandelbrot.cancel();
-        mandelbrot.draw(image);
+        mandelbrot.draw(draw);
         repaint();
         if (onComplete != null) onComplete.call();
     }
