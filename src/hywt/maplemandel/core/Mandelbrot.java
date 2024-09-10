@@ -4,7 +4,6 @@ import hywt.maplemandel.core.numtype.Complex;
 import hywt.maplemandel.core.numtype.DeepComplex;
 import hywt.maplemandel.core.numtype.FloatExp;
 import hywt.maplemandel.core.numtype.FloatExpComplex;
-import hywt.maplemandel.ui.Utils;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -29,6 +28,7 @@ public class Mandelbrot {
     private List<Complex> refComplex;
     private SeriesCoefficient coefficient;
     private RecalcFlags flags;
+    private Thread mandelThread;
 
     public Mandelbrot(int width, int height) {
         this.center = new DeepComplex(BigDecimal.ZERO, BigDecimal.ZERO);
@@ -148,6 +148,9 @@ public class Mandelbrot {
     }
 
     public void cancel() {
+        if (mandelThread != null) {
+            mandelThread.interrupt();
+        }
         for (Future<?> future : futures) {
             future.cancel(true);
         }
@@ -158,7 +161,17 @@ public class Mandelbrot {
         return drawing;
     }
 
-
+    public void startDraw(DrawCall drawCall, Callable<Void> onCompleted) {
+        mandelThread = new Thread(() -> {
+            draw(drawCall);
+            try {
+                if (onCompleted != null) onCompleted.call();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+        mandelThread.start();
+    }
 
     public synchronized void draw(DrawCall draw) {
         drawing = true;
@@ -169,6 +182,9 @@ public class Mandelbrot {
         if (flags.isReference()) {
             stats.reset();
             reference = getReference(center);
+            if (Thread.currentThread().isInterrupted()) {
+                return; // Exit if the task was cancelled
+            }
             refComplex = reference.stream().map(FloatExpComplex::toComplex).toList();
             flags.setReference(false);
         } else {
@@ -182,6 +198,9 @@ public class Mandelbrot {
                     getDelta(width - 1, 0),
                     getDelta(width - 1, height - 1)
             ));
+            if (Thread.currentThread().isInterrupted()) {
+                return; // Exit if the task was cancelled
+            }
             flags.setApproximation(false);
         }
         System.out.println(coefficient);
@@ -351,13 +370,13 @@ public class Mandelbrot {
             for (Future<?> future : futures) {
                 try {
                     future.get();
-                } catch (CancellationException e) {
-                } catch (InterruptedException | ExecutionException e) {
+                } catch (CancellationException | InterruptedException e) {
+                    return;
+                } catch (ExecutionException e) {
                     e.printStackTrace();
                 }
             }
         } catch (ConcurrentModificationException e) {
-            return;
         }
     }
 
@@ -459,6 +478,9 @@ public class Mandelbrot {
 
             z = new DeepComplex(x, y).setPrecision(precision);
             stats.refIter.incrementAndGet();
+            if (Thread.currentThread().isInterrupted()) {
+                return null; // Exit if the task was cancelled
+            }
         }
         return referencePoints;
     }
@@ -487,6 +509,9 @@ public class Mandelbrot {
                     iterV.set(i, v2);
                 }
                 stats.approx.incrementAndGet();
+                if (Thread.currentThread().isInterrupted()) {
+                    return null; // Exit if the task was cancelled
+                }
             }
         } catch (ArithmeticException e) {
 

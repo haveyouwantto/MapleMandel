@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/MapleMandel.iml" filepath="$PROJECT_DIR$/MapleMandel.iml" />
+      <module fileurl="file://$PROJECT_DIR$/MapleMandelApp/MapleMandelApp.iml" filepath="$PROJECT_DIR$/MapleMandelApp/MapleMandelApp.iml" />
     </modules>
   </component>
 </project>

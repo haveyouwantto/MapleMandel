@@ -263,7 +263,7 @@ public class MandelbrotApp extends JFrame {
                 mandelbrot.getParameter().save(os);
                 os.close();
                 while (true) {
-                    panel.startDrawSync();
+                    panel.startDraw();
                     BufferedImage img = panel.getImage();
                     ImageIO.write(img, "png", new File(dir, String.format("%05d_%s.png", ord, new FloatExp(4).div(mandelbrot.getScale()))));
                     if (mandelbrot.getScale().compareTo(new FloatExp(10)) > 0) {
@@ -379,20 +379,9 @@ class DrawingPanel extends JPanel {
     }
 
     public void startDraw() {
-        new Thread(() -> {
-            try {
-                startDrawSync();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }).start();
-    }
-
-    public void startDrawSync() throws Exception {
         mandelbrot.cancel();
-        mandelbrot.draw(draw);
+        mandelbrot.startDraw(draw, onComplete);
         repaint();
-        if (onComplete != null) onComplete.call();
     }
 
     public Mandelbrot getMandelbrot() {
