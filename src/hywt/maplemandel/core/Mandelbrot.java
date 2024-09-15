@@ -393,7 +393,7 @@ public class Mandelbrot {
         int iter;
         if (coefficient.getIterationCount() > 2) {
             FloatExpComplex approx = approximate(coefficient, c);
-            if (scale.compareTo(new FloatExp(1, -320)) > 0) {
+            if (scale.compareTo(new FloatExp(1e-320)) > 0) {
                 iter = getPTIter(approx.toComplex(), c.toComplex(), refComplex, coefficient.getIterationCount() + 1);
             } else {
                 if (approx.getRe().scale() < -160 || approx.getIm().scale() < -160) {
@@ -403,7 +403,7 @@ public class Mandelbrot {
                     iter = getPTIter(approx.toComplex(), c.toComplex(), refComplex, coefficient.getIterationCount() + 1);
             }
         } else {
-            if (scale.compareTo(new FloatExp(1, -320)) > 0) {
+            if (scale.compareTo(new FloatExp(1e-320)) > 0) {
                 iter = getPTIter(c.toComplex(), refComplex);
             } else {
                 Parcel<Integer, FloatExpComplex> result = getPTIterFloatExp(c, c, reference, 0);

@@ -1,12 +1,13 @@
 package hywt.maplemandel.core.numtype;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
 
 public class FloatExp implements Comparable<FloatExp> {
-    double base;
-    int exp;
+    double base;  // Base is in [1, 2) for normalization in base 2
+    int exp;      // Exponent is in powers of 2
 
-    public FloatExp(double base, int exp) {
+    private FloatExp(double base, int exp) {
         if (Double.isNaN(base) || Double.isNaN(exp) || Double.isInfinite(base) || Double.isInfinite(exp)) {
             throw new IllegalArgumentException(String.format("Invalid FloatExp: %s %s", base, exp));
         }
@@ -20,36 +21,52 @@ public class FloatExp implements Comparable<FloatExp> {
     }
 
     public FloatExp norm() {
-        if (base != 0) {
-            while (Math.abs(base) >= 10) {
-                exp++;
-                base /= 10;
-            }
-            while (Math.abs(base) < 1) {
-                exp--;
-                base *= 10;
-            }
-        }
+        long bits = Double.doubleToRawLongBits(base);
+
+        long sign = bits & 0x8000000000000000L;
+        int exponent = (int) ((bits >> 52) & 0x7FFL) - 1023;
+
+        long mantissa = (bits & 0xFFFFFFFFFFFFFL) | 0x3FF0000000000000L;
+
+        this.base = Double.longBitsToDouble(sign | mantissa);
+        this.exp += exponent;
         return this;
     }
 
     public double doubleValue() {
-        return base * Math.pow(10, exp);
+        if (exp > 1023) return Double.POSITIVE_INFINITY;
+        else if (exp < -1023) return Double.NEGATIVE_INFINITY;
+        long mantissa = Double.doubleToRawLongBits(base) & 0x800FFFFFFFFFFFFFL;
+        long exponent = ((exp + 1023L) << 52) & 0x7FF0000000000000L;
+
+        return Double.longBitsToDouble(mantissa | exponent);
     }
 
     public BigDecimal toBigDecimal() {
-        return BigDecimal.valueOf(base).scaleByPowerOfTen(exp);
+        BigDecimal expPart = new BigDecimal(2).pow(Math.abs(exp));
+        if (exp < 0) expPart = BigDecimal.ONE.divide(expPart, MathContext.DECIMAL64);
+        return new BigDecimal(base).multiply(expPart);
     }
 
     @Override
     public String toString() {
         norm();
-        return base + "e" + exp;
+        double log2exp = Math.log10(2) * exp;
+        int exp2int = (int) log2exp;
+        double delta = log2exp - exp2int;
+
+        double base = this.base * Math.pow(10, delta);
+        return base + "E" + exp2int;
     }
 
     public String toFixed(int digits) {
         norm();
-        return String.format(("%." + digits + "fe%d"), base, exp);
+        double log2exp = Math.log10(2) * exp;
+        int exp2int = (int) log2exp;
+        double delta = log2exp - exp2int;
+
+        double base = this.base * Math.pow(10, delta);
+        return String.format(("%."+digits+"fE%+d"), base, exp2int);
     }
 
     public FloatExp add(FloatExp other) {
@@ -58,10 +75,10 @@ public class FloatExp implements Comparable<FloatExp> {
         int expDiff = other.exp - exp;
         if (expDiff == 0) {
             return new FloatExp(base + other.base, exp);
-        } else if (expDiff > 16) {
+        } else if (expDiff > 53) {  // Base-2 precision limit for double
             return other;
         } else {
-            return new FloatExp(base + other.base * Math.pow(10, expDiff), exp);
+            return new FloatExp(base + other.base * Math.pow(2, expDiff), exp).norm();
         }
     }
 
@@ -76,12 +93,12 @@ public class FloatExp implements Comparable<FloatExp> {
         if (expDiff == 0) {
             base += other.base;
             return this.norm();
-        } else if (expDiff > 16) {
+        } else if (expDiff > 53) {
             base = other.base;
             exp = other.exp;
             return this;
         } else {
-            base += other.base * Math.pow(10, expDiff);
+            base += other.base * Math.pow(2, expDiff);
             return this.norm();
         }
     }
@@ -92,13 +109,12 @@ public class FloatExp implements Comparable<FloatExp> {
         int expDiff = other.exp - this.exp;
         if (expDiff == 0) {
             return new FloatExp(this.base - other.base, this.exp);
-        } else if (expDiff > 16) {
+        } else if (expDiff > 53) {
             return other.rev();
         } else {
-            return new FloatExp(this.base - other.base * Math.pow(10, expDiff), this.exp);
+            return new FloatExp(this.base - other.base * Math.pow(2, expDiff), this.exp).norm();
         }
     }
-
 
     public FloatExp subMut(FloatExp other) {
         if (other.base == 0) return this;
@@ -111,18 +127,18 @@ public class FloatExp implements Comparable<FloatExp> {
         if (expDiff == 0) {
             this.base -= other.base;
             return this.norm();
-        } else if (expDiff > 16) {
+        } else if (expDiff > 53) {
             base = -other.base;
             exp = other.exp;
             return this;
         } else {
-            this.base -= other.base * Math.pow(10, expDiff);
+            this.base -= other.base * Math.pow(2, expDiff);
             return this.norm();
         }
     }
 
     public FloatExp mul(FloatExp other) {
-        return new FloatExp(this.base * other.base, this.exp + other.exp);
+        return new FloatExp(this.base * other.base, this.exp + other.exp).norm();
     }
 
     public FloatExp mulMut(FloatExp other) {
@@ -133,7 +149,7 @@ public class FloatExp implements Comparable<FloatExp> {
 
     public FloatExp div(FloatExp other) {
         if (other.base == 0) throw new ArithmeticException("divide by 0");
-        return new FloatExp(this.base / other.base, this.exp - other.exp);
+        return new FloatExp(this.base / other.base, this.exp - other.exp).norm();
     }
 
     public FloatExp divMut(FloatExp other) {
@@ -176,7 +192,7 @@ public class FloatExp implements Comparable<FloatExp> {
         if (this.base < 0) {
             throw new ArithmeticException("Cannot take square root of a negative number");
         }
-        return new FloatExp(Math.sqrt(this.base), this.exp / 2);
+        return new FloatExp(Math.sqrt(this.base), this.exp / 2).norm();
     }
 
     public FloatExp rev() {
@@ -188,27 +204,33 @@ public class FloatExp implements Comparable<FloatExp> {
         String[] parts = str.split("e");
         double base = Double.parseDouble(parts[0]);
         int exp = (parts.length > 1) ? Integer.parseInt(parts[1]) : 0;
-        return new FloatExp(base, exp);
+
+        double log2exp = Math.log(10) / Math.log(2) * exp;
+        int exp2int = (int) log2exp;
+        double delta = Math.pow(2, log2exp - exp2int);
+
+        base *= delta;
+
+        return new FloatExp(base, exp2int);
     }
 
     public static FloatExp doubleToFloatExp(double num) {
-        if (num == 0) return new FloatExp(0, 0);
-        int exponent = (int) Math.floor(Math.log10(Math.abs(num)));
-        double significand = num / Math.pow(10, exponent);
-        return new FloatExp(significand, exponent);
+        return new FloatExp(num);
     }
 
     public static FloatExp decimalToFloatExp(BigDecimal num) {
         if (num.compareTo(BigDecimal.ZERO) == 0) return new FloatExp(0, 0);
 
-        // Normalize the number
-        int scale = num.scale();
-        int precision = num.precision();
-        int exponent = precision - scale - 1;
+        int exponent = num.precision() - num.scale();
+        double normalized = num.scaleByPowerOfTen(-exponent).doubleValue();
 
-        // Normalize the value to [1, 10)
-        BigDecimal normalized = num.movePointLeft(exponent);
-        return new FloatExp(normalized.doubleValue(), exponent);
+        double log2exp = Math.log(10) / Math.log(2) * exponent;
+        int exp2int = (int) log2exp;
+        double delta = Math.pow(2, log2exp - exp2int);
+
+        normalized *= delta;
+
+        return new FloatExp(normalized, exp2int);
     }
 
     @Override
@@ -218,7 +240,7 @@ public class FloatExp implements Comparable<FloatExp> {
         else return Double.compare(this.base, o.base);
     }
 
-    protected FloatExp copy()  {
+    protected FloatExp copy() {
         return new FloatExp(base, exp);
     }
 }
