@@ -12,9 +12,13 @@ public class Complex {
 
     public double abs() {
         if (absValue == null) {
-            absValue = Math.sqrt(re * re + im * im);
+            absValue = Math.sqrt(abs2());
         }
         return absValue;
+    }
+
+    public double abs2() {
+        return re * re + im * im;
     }
 
     public Complex mul(Complex o) {

@@ -13,7 +13,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -249,7 +252,18 @@ public class MandelbrotApp extends JFrame {
         double ref = (double) stats.getRefIter().get() / mandelbrot.getMaxIter();
         double approx = (double) stats.getApprox().get() / stats.getRefIter().get();
         double percent = (double) stats.getDrawn().get() / stats.getTotalPixels();
-        label.setText(String.format("%.1f%%  Ref: %.1f%%  Approx: %.1f%%  Guessed: %.1f%%  Zoom: %s  It: %d  ", percent * 100, ref * 100, approx * 100, guessed * 100, new FloatExp(4).div(mandelbrot.getScale()).toFixed(3), mandelbrot.getMaxIter()));
+        long time = System.currentTimeMillis() - stats.getStartTime().get();
+        Duration duration = Duration.ofMillis(time);
+        label.setText(String.format(
+                "%.1f%%  Ref: %.1f%%  Approx: %.1f%%  Guessed: %.1f%%  Time: %s  Zoom: %s  It: %d  ",
+                percent * 100,
+                ref * 100,
+                approx * 100,
+                guessed * 100,
+                duration,
+                new FloatExp(4).div(mandelbrot.getScale()).toFixed(3), mandelbrot.getMaxIter()
+                )
+        );
     }
 
     public void storeImageSeq(File dir) {
@@ -292,6 +306,8 @@ class DrawingPanel extends JPanel {
     private Callable<Void> onComplete;
     private boolean enabled;
     private DrawCall draw;
+
+    private long startTime;
 
     public DrawingPanel() throws Exception {
         int width = 1920;
