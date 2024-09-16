@@ -1,4 +1,3 @@
-import hywt.maplemandel.core.numtype.FloatExp;
 import hywt.maplemandel.ui.MandelbrotApp;
 
 public class Main {
