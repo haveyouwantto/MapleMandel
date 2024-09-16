@@ -21,7 +21,6 @@ public class FloatExp implements Comparable<FloatExp> {
     }
 
     public FloatExp norm() {
-        if (base == 0) return this;
         long bits = Double.doubleToRawLongBits(base);
 
         long sign = bits & 0x8000000000000000L;
@@ -35,47 +34,12 @@ public class FloatExp implements Comparable<FloatExp> {
     }
 
     public double doubleValue() {
-        if (base == 0) {
-            return 0.0;
-        }
+        if (exp > 1023) return Double.POSITIVE_INFINITY;
+        else if (exp < -1023) return Double.NEGATIVE_INFINITY;
+        long mantissa = Double.doubleToRawLongBits(base) & 0x800FFFFFFFFFFFFFL;
+        long exponent = ((exp + 1023L) << 52) & 0x7FF0000000000000L;
 
-        // Handle overflow to infinity
-        if (exp > 1023) {
-            return base > 0 ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
-        }
-
-        // Handle underflow to zero (subnormal or too small for double)
-        if (exp < -1074) { // Beyond the smallest double representable value
-            return base > 0 ? 0.0 : -0.0;
-        }
-
-        // Normalize the exponent and handle subnormal numbers
-        long bits = Double.doubleToRawLongBits(base);
-        long sign = bits & 0x8000000000000000L; // Keep the sign bit
-        long mantissa = bits & 0x000FFFFFFFFFFFFFL; // Extract mantissa
-
-        int exponent = (int) ((bits >> 52) & 0x7FF) - 1023; // Get the current exponent
-
-        // Compute new exponent
-        int newExp = exp + exponent;
-
-        // Handle subnormal numbers (newExp < -1023)
-        if (newExp < -1023) {
-            // Subnormal numbers don't have a full exponent, so adjust the mantissa
-            int shift = -1023 - newExp;
-            mantissa = mantissa >> shift;
-            newExp = -1023; // Subnormals use the smallest exponent
-        }
-
-        // Handle overflow into infinity
-        if (newExp > 1023) {
-            return base > 0 ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
-        }
-
-        // Combine sign, exponent, and mantissa into a double
-        long newBits = sign | (((long)(newExp + 1023)) << 52) | (mantissa & 0x000FFFFFFFFFFFFFL);
-
-        return Double.longBitsToDouble(newBits);
+        return Double.longBitsToDouble(mantissa | exponent);
     }
 
     public BigDecimal toBigDecimal() {
