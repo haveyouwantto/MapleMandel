@@ -14,12 +14,24 @@ public class FloatExp implements Comparable<FloatExp> {
         return expTable[exp + 324];
     }
 
+    public static int getExpOfDouble(double d) {
+        int exp = 324;
+        if (d < 0) d = -d;
+        boolean greater = d > expTable[exp];
+        boolean current = greater;
+        while (current == greater && exp > 0 && exp < expTable.length) {
+            if (current) exp++;
+            else exp--;
+            current = d > expTable[exp];
+        }
+        return exp - 325;
+    }
+
     static {
         expTable = new double[324 + 308];
         for (int i = 0; i < expTable.length; i++) {
             expTable[i] = Math.pow(10, i - 324);
         }
-        System.out.println(getExp(3));
     }
 
     public FloatExp(double base, int exp) {
@@ -36,15 +48,10 @@ public class FloatExp implements Comparable<FloatExp> {
     }
 
     public FloatExp norm() {
-        if (base != 0) {
-            while (Math.abs(base) >= 10) {
-                exp++;
-                base /= 10;
-            }
-            while (Math.abs(base) < 1) {
-                exp--;
-                base *= 10;
-            }
+        if (base != 0 && (base > 10 || base < 1)) {
+            int exp = getExpOfDouble(base);
+            this.exp += exp;
+            base /= getExp(exp);
         }
         return this;
     }
