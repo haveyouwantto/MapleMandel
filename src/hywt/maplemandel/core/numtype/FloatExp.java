@@ -15,16 +15,26 @@ public class FloatExp implements Comparable<FloatExp> {
     }
 
     public static int getExpOfDouble(double d) {
-        int exp = 324;
-        if (d < 0) d = -d;
-        boolean greater = d > expTable[exp];
-        boolean current = greater;
-        while (current == greater && exp > 0 && exp < expTable.length) {
-            if (current) exp++;
-            else exp--;
-            current = d > expTable[exp];
+        if (d < 0) d = -d; // Handle negative values by converting to positive
+
+        int low = 0;
+        int high = expTable.length - 1;
+
+        // Binary search to find the exponent that matches the value
+        while (low <= high) {
+            int mid = (low + high) / 2;
+
+            if (expTable[mid] == d) {
+                return mid - 324;  // Return the exponent directly if found
+            } else if (expTable[mid] < d) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
         }
-        return exp - 325;
+
+        // Return the exponent corresponding to the closest smaller value
+        return low - 325;
     }
 
     static {

@@ -9,7 +9,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="use exp table to speedup floatexp">
+    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="optimize floatexp norm()">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/core/numtype/FloatExp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/core/numtype/FloatExp.java" afterDir="false" />
     </list>
@@ -403,7 +403,15 @@
       <option name="project" value="LOCAL" />
       <updated>1727342885188</updated>
     </task>
-    <option name="localTasksCounter" value="39" />
+    <task id="LOCAL-00039" summary="optimize floatexp norm()">
+      <option name="closed" value="true" />
+      <created>1727345065955</created>
+      <option name="number" value="00039" />
+      <option name="presentableId" value="LOCAL-00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1727345065955</updated>
+    </task>
+    <option name="localTasksCounter" value="40" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -418,7 +426,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="generalize coeff computation" />
     <MESSAGE value="8.2" />
     <MESSAGE value="fix floatexp add/sub" />
     <MESSAGE value="check if approximated scale &lt; -320" />
@@ -443,6 +450,7 @@
     <MESSAGE value="attempt to fix cancel()" />
     <MESSAGE value="attempt to fix cancel() 2" />
     <MESSAGE value="use exp table to speedup floatexp" />
-    <option name="LAST_COMMIT_MESSAGE" value="use exp table to speedup floatexp" />
+    <MESSAGE value="optimize floatexp norm()" />
+    <option name="LAST_COMMIT_MESSAGE" value="optimize floatexp norm()" />
   </component>
 </project>
