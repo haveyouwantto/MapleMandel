@@ -6,6 +6,22 @@ public class FloatExp implements Comparable<FloatExp> {
     double base;
     int exp;
 
+    private static double[] expTable;
+
+    public static double getExp(int exp) {
+        if (exp < -324) return 0;
+        else if (exp > 308) return Double.POSITIVE_INFINITY;
+        return expTable[exp + 324];
+    }
+
+    static {
+        expTable = new double[324 + 308];
+        for (int i = 0; i < expTable.length; i++) {
+            expTable[i] = Math.pow(10, i - 324);
+        }
+        System.out.println(getExp(3));
+    }
+
     public FloatExp(double base, int exp) {
         if (Double.isNaN(base) || Double.isNaN(exp) || Double.isInfinite(base) || Double.isInfinite(exp)) {
             throw new IllegalArgumentException(String.format("Invalid FloatExp: %s %s", base, exp));
@@ -34,7 +50,7 @@ public class FloatExp implements Comparable<FloatExp> {
     }
 
     public double doubleValue() {
-        return base * Math.pow(10, exp);
+        return base * getExp(exp);
     }
 
     public BigDecimal toBigDecimal() {
@@ -61,7 +77,7 @@ public class FloatExp implements Comparable<FloatExp> {
         } else if (expDiff > 16) {
             return other;
         } else {
-            return new FloatExp(base + other.base * Math.pow(10, expDiff), exp);
+            return new FloatExp(base + other.base * getExp(expDiff), exp);
         }
     }
 
@@ -81,7 +97,7 @@ public class FloatExp implements Comparable<FloatExp> {
             exp = other.exp;
             return this;
         } else {
-            base += other.base * Math.pow(10, expDiff);
+            base += other.base * getExp(expDiff);
             return this.norm();
         }
     }
@@ -95,7 +111,7 @@ public class FloatExp implements Comparable<FloatExp> {
         } else if (expDiff > 16) {
             return other.rev();
         } else {
-            return new FloatExp(this.base - other.base * Math.pow(10, expDiff), this.exp);
+            return new FloatExp(this.base - other.base * getExp(expDiff), this.exp);
         }
     }
 
@@ -116,7 +132,7 @@ public class FloatExp implements Comparable<FloatExp> {
             exp = other.exp;
             return this;
         } else {
-            this.base -= other.base * Math.pow(10, expDiff);
+            this.base -= other.base * getExp(expDiff);
             return this.norm();
         }
     }
@@ -194,7 +210,7 @@ public class FloatExp implements Comparable<FloatExp> {
     public static FloatExp doubleToFloatExp(double num) {
         if (num == 0) return new FloatExp(0, 0);
         int exponent = (int) Math.floor(Math.log10(Math.abs(num)));
-        double significand = num / Math.pow(10, exponent);
+        double significand = num / getExp(exponent);
         return new FloatExp(significand, exponent);
     }
 
@@ -218,7 +234,7 @@ public class FloatExp implements Comparable<FloatExp> {
         else return Double.compare(this.base, o.base);
     }
 
-    protected FloatExp copy()  {
+    protected FloatExp copy() {
         return new FloatExp(base, exp);
     }
 }

@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ArtifactsWorkspaceSettings">
     <artifacts-to-build>
-      <artifact name="MapleMandel:jar" />
       <artifact name="MapleMandelApp:jar" />
     </artifacts-to-build>
   </component>
@@ -10,12 +9,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="fix reuse center and guessing">
+    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="make floatexp 2 based">
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MapleMandelApp/src/hywt/maplemandel/ui/MandelbrotApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/MapleMandelApp/src/hywt/maplemandel/ui/MandelbrotApp.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/core/Mandelbrot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/core/Mandelbrot.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/core/MandelbrotStats.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/core/MandelbrotStats.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/core/numtype/Complex.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/core/numtype/Complex.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/core/numtype/FloatExp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/core/numtype/FloatExp.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -62,9 +59,10 @@
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
     &quot;last_opened_file_path&quot;: &quot;D:/git/FractalAnimator&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Artifacts&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;工件&quot;,
     &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
     &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;,
     &quot;应用程序.Main (1).executor&quot;: &quot;Run&quot;,
     &quot;应用程序.Main.executor&quot;: &quot;Run&quot;,
     &quot;应用程序.MandelbrotApp.executor&quot;: &quot;Run&quot;
@@ -78,31 +76,17 @@
       <recent name="hywt.maplemandel" />
     </key>
   </component>
-  <component name="RunManager" selected="应用程序.Main (1)">
-    <configuration name="Main (1)" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+  <component name="RunManager">
+    <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Main" />
       <module name="MapleMandelApp" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="Main" />
-      <module name="MapleMandel" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="MandelbrotApp" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="hywt.maplemandel.ui.MandelbrotApp" />
-      <module name="MapleMandel" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="应用程序.Main (1)" />
+        <item itemvalue="应用程序.Main" />
         <item itemvalue="应用程序.Main" />
       </list>
     </recent_temporary>
