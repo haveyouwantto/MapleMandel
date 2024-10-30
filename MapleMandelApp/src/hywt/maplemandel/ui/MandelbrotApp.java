@@ -310,8 +310,8 @@ class DrawingPanel extends JPanel {
     private long startTime;
 
     public DrawingPanel() throws Exception {
-        int width = 1920;
-        int height = 1080;
+        int width = 640;
+        int height = 360;
 
         // 创建一个BufferedImage
         image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
