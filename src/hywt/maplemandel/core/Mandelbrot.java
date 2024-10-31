@@ -12,7 +12,7 @@ import java.util.concurrent.*;
 
 public class Mandelbrot {
 
-    private static final BigDecimal ESCAPE_RADIUS = new BigDecimal(1000);
+    private static final FloatExp ESCAPE_RADIUS = new FloatExp(1000);
     private ThreadPoolExecutor executor;
     private DeepComplex center;
     private FloatExp scale;
@@ -469,11 +469,9 @@ public class Mandelbrot {
             BigDecimal x2 = re.multiply(re, mc);
             BigDecimal y2 = im.multiply(im, mc);
 
-            if (x2.add(y2).compareTo(ESCAPE_RADIUS) > 0) {
-                break;
-            }
-
-            referencePoints.add(z.toFloatExp());
+            FloatExpComplex fl = z.toFloatExp();
+            if (fl.abs().compareTo(ESCAPE_RADIUS) > 0) break;
+            referencePoints.add(fl);
 
             BigDecimal x = x2.subtract(y2, mc).add(c.getRe(), mc);
             BigDecimal y = re.multiply(im, mc).multiply(BigDecimal.valueOf(2), mc).add(c.getIm(), mc);
