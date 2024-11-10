@@ -9,9 +9,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="optimize floatexp norm()">
+    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="use floatexp to compare">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/core/numtype/FloatExp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/core/numtype/FloatExp.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MapleMandelApp/src/hywt/maplemandel/ui/MandelbrotApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/MapleMandelApp/src/hywt/maplemandel/ui/MandelbrotApp.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/core/Mandelbrot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/core/Mandelbrot.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -411,7 +412,31 @@
       <option name="project" value="LOCAL" />
       <updated>1727345065955</updated>
     </task>
-    <option name="localTasksCounter" value="40" />
+    <task id="LOCAL-00040" summary="make getexpof double binary search">
+      <option name="closed" value="true" />
+      <created>1727360816386</created>
+      <option name="number" value="00040" />
+      <option name="presentableId" value="LOCAL-00040" />
+      <option name="project" value="LOCAL" />
+      <updated>1727360816386</updated>
+    </task>
+    <task id="LOCAL-00041" summary="extract calc runnable">
+      <option name="closed" value="true" />
+      <created>1730301815783</created>
+      <option name="number" value="00041" />
+      <option name="presentableId" value="LOCAL-00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1730301815783</updated>
+    </task>
+    <task id="LOCAL-00042" summary="use floatexp to compare">
+      <option name="closed" value="true" />
+      <created>1730382631226</created>
+      <option name="number" value="00042" />
+      <option name="presentableId" value="LOCAL-00042" />
+      <option name="project" value="LOCAL" />
+      <updated>1730382631226</updated>
+    </task>
+    <option name="localTasksCounter" value="43" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -426,9 +451,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="8.2" />
-    <MESSAGE value="fix floatexp add/sub" />
-    <MESSAGE value="check if approximated scale &lt; -320" />
     <MESSAGE value="add save meta when rendering zoom out seq" />
     <MESSAGE value="fix over approximation" />
     <MESSAGE value="optimize mandel app" />
@@ -451,6 +473,9 @@
     <MESSAGE value="attempt to fix cancel() 2" />
     <MESSAGE value="use exp table to speedup floatexp" />
     <MESSAGE value="optimize floatexp norm()" />
-    <option name="LAST_COMMIT_MESSAGE" value="optimize floatexp norm()" />
+    <MESSAGE value="make getexpof double binary search" />
+    <MESSAGE value="extract calc runnable" />
+    <MESSAGE value="use floatexp to compare" />
+    <option name="LAST_COMMIT_MESSAGE" value="use floatexp to compare" />
   </component>
 </project>

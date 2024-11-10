@@ -29,6 +29,7 @@ public class Mandelbrot {
     private SeriesCoefficient coefficient;
     private RecalcFlags flags;
     private Thread mandelThread;
+    private boolean multiThreaded;
 
     public Mandelbrot(int width, int height) {
         this.center = new DeepComplex(BigDecimal.ZERO, BigDecimal.ZERO);
@@ -223,7 +224,7 @@ public class Mandelbrot {
         // 使用智能猜测填充左右像素
         for (int y = 0; y < height; y += 2) {
             int finalY = y;
-            Runnable r= ()->{
+            Runnable r = () -> {
                 for (int x = 1; x < width; x += 2) {
                     if (iterations[x][finalY] == 0) {
                         if (finalY < height - 1 && x < width - 1) {
@@ -247,11 +248,12 @@ public class Mandelbrot {
                     if (Thread.currentThread().isInterrupted()) return;
                 }
             };
-            futures.add(executor.submit(r));
+            if (multiThreaded) futures.add(executor.submit(r));
+            else r.run();
         }
 
         try {
-           waitUntilDone();
+            waitUntilDone();
         } catch (ConcurrentModificationException e) {
             return;
         }
@@ -285,7 +287,8 @@ public class Mandelbrot {
                     if (Thread.currentThread().isInterrupted()) return;
                 }
             };
-            futures.add(executor.submit(r));
+            if (multiThreaded) futures.add(executor.submit(r));
+            else r.run();
         }
 
         try {
@@ -373,7 +376,8 @@ public class Mandelbrot {
                     if (Thread.currentThread().isInterrupted()) return;
                 }
             };
-            futures.add(executor.submit(r));
+            if (multiThreaded) futures.add(executor.submit(r));
+            else r.run();
         }
 
         try {
@@ -592,4 +596,11 @@ public class Mandelbrot {
         return new Parcel<>(iter, null);
     }
 
+    public boolean isMultiThreaded() {
+        return multiThreaded;
+    }
+
+    public void setMultiThreaded(boolean multiThreaded) {
+        this.multiThreaded = multiThreaded;
+    }
 }
