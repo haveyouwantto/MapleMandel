@@ -1,9 +1,6 @@
 package hywt.maplemandel.core;
 
-import hywt.maplemandel.core.numtype.Complex;
-import hywt.maplemandel.core.numtype.DeepComplex;
-import hywt.maplemandel.core.numtype.FloatExp;
-import hywt.maplemandel.core.numtype.FloatExpComplex;
+import hywt.maplemandel.core.numtype.*;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -29,6 +26,7 @@ public class Mandelbrot {
     private RecalcFlags flags;
     private Thread mandelThread;
     private boolean multiThreaded;
+    private List<List<LAStep>> LAData;
 
     public Mandelbrot(int width, int height) {
         this.center = new DeepComplex(BigDecimal.ZERO, BigDecimal.ZERO);
@@ -47,6 +45,8 @@ public class Mandelbrot {
         flags = new RecalcFlags();
         int numThreads = Runtime.getRuntime().availableProcessors();
         executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(numThreads);
+
+        LAData = new ArrayList<>();
     }
 
     public Complex getDelta(double x, double y) {
@@ -197,6 +197,13 @@ public class Mandelbrot {
             refComplex = new ArrayList<>();
             for (FloatExpComplex floatExp : reference) {
                 refComplex.add(floatExp.toComplex());
+            }
+
+            if (refComplex.size()>=8){
+
+                createLAFromOrbit();
+                while (createNewLALevel());
+                System.out.println(LAData);
             }
 
             flags.setReference(false);
@@ -388,25 +395,31 @@ public class Mandelbrot {
     private void calc(int x, int y, DrawCall draw, int w, int h) {
         FloatExpComplex c = getDeepDelta(x, y);
         int iter;
-        if (coefficient.getIterationCount() > 2) {
-            FloatExpComplex approx = approximate(coefficient, c);
-            if (scale.compareTo(new FloatExp(1, -320)) > 0) {
-                iter = getPTIter(approx.toComplex(), c.toComplex(), refComplex, coefficient.getIterationCount() + 1);
-            } else {
-                if (approx.getRe().scale() < -160 || approx.getIm().scale() < -160) {
-                    Parcel<Integer, FloatExpComplex> result = getPTIterFloatExp(approx, c, reference, coefficient.getIterationCount() + 1);
-                    iter = result.value == null ? result.key : getPTIter(result.value.toComplex(), c.toComplex(), refComplex, result.key + 1);
-                } else
-                    iter = getPTIter(approx.toComplex(), c.toComplex(), refComplex, coefficient.getIterationCount() + 1);
-            }
+        if (scale.compareTo(new FloatExp(1, -320)) > 0) {
+            iter = getPTIter(c.toComplex(), refComplex);
         } else {
-            if (scale.compareTo(new FloatExp(1, -320)) > 0) {
-                iter = getPTIter(c.toComplex(), refComplex);
-            } else {
-                Parcel<Integer, FloatExpComplex> result = getPTIterFloatExp(c, c, reference, 0);
-                iter = result.value == null ? result.key : getPTIter(result.value.toComplex(), c.toComplex(), refComplex, result.key + 1);
-            }
+            iter = getPTIterFloatExp(c, reference);
         }
+//        iter =  result.key;
+//        if (coefficient.getIterationCount() > 2) {
+//            FloatExpComplex approx = approximate(coefficient, c);
+//            if (scale.compareTo(new FloatExp(1, -320)) > 0) {
+//                iter = getPTIter(approx.toComplex(), c.toComplex(), refComplex, coefficient.getIterationCount() + 1);
+//            } else {
+////                if (approx.getRe().scale() < -160 || approx.getIm().scale() < -160) {
+//                    Parcel<Integer, FloatExpComplex> result = getPTIterFloatExp(approx, c, reference, coefficient.getIterationCount() + 1);
+//                    iter = result.value == null ? result.key : getPTIter(result.value.toComplex(), c.toComplex(), refComplex, result.key + 1);
+////                } else
+////                    iter = getPTIter(approx.toComplex(), c.toComplex(), refComplex, coefficient.getIterationCount() + 1);
+//            }
+//        } else {
+//            if (scale.compareTo(new FloatExp(1, -320)) > 0) {
+//                iter = getPTIter(c.toComplex(), refComplex);
+//            } else {
+//                Parcel<Integer, FloatExpComplex> result = getPTIterFloatExp(c, c, reference, 0);
+//                iter = result.value == null ? result.key : getPTIter(result.value.toComplex(), c.toComplex(), refComplex, result.key + 1);
+//            }
+//        }
         iterations[x][y] = iter;
 
         Color color = (iter >= maxIter) ? Color.BLACK : Palette.getColor(iter);
@@ -481,7 +494,7 @@ public class Mandelbrot {
 
             stats.refIter.incrementAndGet();
         }
-        System.out.println(referencePoints.size());
+        System.out.println(referencePoints);
         return referencePoints;
     }
 
@@ -526,73 +539,73 @@ public class Mandelbrot {
         return result;
     }
 
-    private int getPTIter(Complex origin, List<Complex> reference) {
-        return getPTIter(new Complex(0, 0), origin, reference, 0);
-    }
+    private int getPTIter(Complex dc, List<Complex> reference) {
 
-    private int getPTIter(Complex delta, Complex origin, List<Complex> reference, int start) {
-        double dRe = delta.getRe();
-        double dIm = delta.getIm();
-        double tmp;
+        Complex Z = new Complex(0.0, 0.0);
+        Complex z = new Complex(0.0, 0.0);
+        Complex dz = new Complex(0.0, 0.0);
 
-        int iter = start;
-        int refIter = start;
+        int iter = 0;
+        int refIter = 0;
         while (iter < maxIter) {
-            Complex Z = reference.get(refIter);
-
-            // 计算delta的影响
-            tmp = (2 * Z.getRe() + dRe) * dRe - (2 * Z.getIm() + dIm) * dIm + origin.getRe();
-            dIm = 2 * (Z.getRe() * dIm + Z.getIm() * dRe + dRe * dIm) + origin.getIm();
-            dRe = tmp;
+            dz =dz.mul(Z.add(z)).add(dc);
             refIter++;
+            iter++;
 
-            Complex Z2 = reference.get(refIter); // 合并参考与delta
-            double valR = Z2.getRe() + dRe;
-            double valI = Z2.getIm() + dIm;
-            double val = valR * valR + valI * valI; // 逃逸检测
+            while (iter < maxIter) {
+                Pair<LAStep, Integer> result = lookup(refIter, dz.norm(), dc.norm());
+                LAStep step = result.first();
+                int length = result.second();
+                if (step == null || length==0) break;
 
-            if (val > 4) return iter;
-            if (val < dRe * dRe + dIm * dIm || refIter == reference.size() - 1) { // 检测是否需要变基
-                dRe = valR;
-                dIm = valI;
+                dz = dz.mul(step.getA()).add(dc.mul(step.getB()));
+                iter += length;
+                refIter += length;
+//                System.out.println(length);
+            }
+
+            if (refIter>reference.size()-1) break;
+
+            Z = reference.get(refIter); // 合并参考与delta
+            z = Z.add(dz);
+
+            if (z.abs2() > 4) return iter;
+            if (z.norm() < dz.norm() || refIter == reference.size() - 1) { // 检测是否需要变基
+                Z = new Complex(0,0);
+                dz=z;
                 refIter = 0;
             }
-            iter++;
         }
         return iter;
     }
 
 
-    private Parcel<Integer, FloatExpComplex> getPTIterFloatExp(FloatExpComplex delta, FloatExpComplex origin, List<FloatExpComplex> reference, int start) {
-        FloatExpComplex tmp;
+    private int getPTIterFloatExp(FloatExpComplex dc, List<FloatExpComplex> reference) {
+        FloatExpComplex dz = new FloatExpComplex(0, 0);
 
-
-        int iter = start;
-        int refIter = start;
+        int iter = 0;
+        int refIter = 0;
         while (iter < maxIter) {
             FloatExpComplex Z = reference.get(refIter);
 
             // 计算delta的影响
-            delta.mulMut(Z.mul(2).addMut(delta)).addMut(origin);
+            dz = Z.mul(2).mul(dz).add(dz.mul(dz)).add(dc);
             refIter++;
 
             FloatExpComplex Z2 = reference.get(refIter);
-            FloatExpComplex val = Z2.add(delta);// 合并参考与delta
+            FloatExpComplex val = Z2.add(dz);// 合并参考与delta
 
-            if (delta.getRe().scale() > -160 && delta.getIm().scale() > -160) {
-                return new Parcel<>(iter, delta);
-            }
             FloatExp len = val.abs2();
             if (len.doubleValue() > 4) {
-                return new Parcel<>(iter, null);
+                return iter;
             }  // 逃逸检测
-            if (len.compareTo(delta.abs2()) < 0 || refIter == reference.size() - 1) { // 检测是否需要变基
-                delta = val;
+            if (len.compareTo(dz.norm()) < 0 || refIter == reference.size() - 1) { // 检测是否需要变基
+                dz = val;
                 refIter = 0;
             }
             iter++;
         }
-        return new Parcel<>(iter, null);
+        return iter;
     }
 
     public boolean isMultiThreaded() {
@@ -602,4 +615,54 @@ public class Mandelbrot {
     public void setMultiThreaded(boolean multiThreaded) {
         this.multiThreaded = multiThreaded;
     }
+
+
+    private void createLAFromOrbit() {
+        List<LAStep> currentLevel = new ArrayList<>();
+        LAData.add(currentLevel);
+
+        for (int i = 1; i < refComplex.size(); i++) {
+            currentLevel.add(new LAStep(refComplex.get(i)));
+        }
+    }
+
+    private boolean createNewLALevel() {
+        List<LAStep> previousLevel = LAData.get(LAData.size() - 1);
+        List<LAStep> currentLevel = new ArrayList<>();
+        LAData.add(currentLevel);
+
+        for (int i = 0; i + 1 < previousLevel.size(); i += 2) {
+            currentLevel.add(previousLevel.get(i).composite(previousLevel.get(i + 1)));
+        }
+        if (previousLevel.size() % 2 != 0) {
+            currentLevel.add(previousLevel.get(previousLevel.size() - 1));
+        }
+
+        return currentLevel.size() > 1;
+    }
+
+    Pair<LAStep, Integer> lookup(int i, double normDz, double normDc) {
+        if (i == 0 || i >= refComplex.size() || LAData.isEmpty()) {
+            return new Pair<>(null, 0);
+        }
+
+        LAStep step = null;
+        int length = 1;
+        int index = i - 1;
+
+        for (List<LAStep> level : LAData) {
+            if (normDz > level.get(index).getValidRadius() || normDc > level.get(index).getValidRadiusC()) break;
+
+            step = level.get(index);
+
+            if (index % 2 != 0) break;
+            length <<=1;
+            index >>=1;
+        }
+
+        length = Math.min(length, refComplex.size() - i);
+        return new Pair<>(step, length);
+    }
+
+    record Pair<K,V>(K first, V second){}
 }

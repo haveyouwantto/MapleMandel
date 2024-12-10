@@ -330,7 +330,7 @@ class DrawingPanel extends JPanel {
         };
 
         mandelbrot = new Mandelbrot(width, height);
-        mandelbrot.setMultiThreaded(true);
+        mandelbrot.setMultiThreaded(false);
         enabled = true;
 
         addMouseListener(new MouseAdapter() {

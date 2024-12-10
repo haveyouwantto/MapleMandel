@@ -86,6 +86,10 @@ public class Complex {
         );
     }
 
+    public double norm(){
+        return Math.abs(Math.max(re,im));
+    }
+
     public Complex copy()  {
         return new Complex(re, im);
     }
