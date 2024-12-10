@@ -548,32 +548,25 @@ public class Mandelbrot {
         int iter = 0;
         int refIter = 0;
         while (iter < maxIter) {
-            dz =dz.mul(Z.add(z)).add(dc);
-            refIter++;
-            iter++;
-
-            while (iter < maxIter) {
-                Pair<LAStep, Integer> result = lookup(refIter, dz.norm(), dc.norm());
-                LAStep step = result.first();
-                int length = result.second();
-                if (step == null || length==0) break;
-
-                dz = dz.mul(step.getA()).add(dc.mul(step.getB()));
-                iter += length;
-                refIter += length;
-//                System.out.println(length);
+            Pair<LAStep, Integer> result = lookup(refIter, dz.norm(), dc.norm());
+            if (result.first!=null&&result.second+iter<maxIter&&result.second+refIter<reference.size()){
+                dz = dz.mul(result.first().getA()).add(dc.mul(result.first().getB()));
+                iter += result.second;
+                refIter += result.second;
+            }else{
+                dz =dz.mul(Z.add(z)).add(dc);
+                refIter++;
+                iter++;
             }
-
-            if (refIter>reference.size()-1) break;
 
             Z = reference.get(refIter); // 合并参考与delta
             z = Z.add(dz);
 
             if (z.abs2() > 4) return iter;
             if (z.norm() < dz.norm() || refIter == reference.size() - 1) { // 检测是否需要变基
-                Z = new Complex(0,0);
                 dz=z;
                 refIter = 0;
+                Z = reference.get(refIter);
             }
         }
         return iter;
@@ -650,18 +643,23 @@ public class Mandelbrot {
         int length = 1;
         int index = i - 1;
 
-        for (List<LAStep> level : LAData) {
-            if (normDz > level.get(index).getValidRadius() || normDc > level.get(index).getValidRadiusC()) break;
+        try {
 
-            step = level.get(index);
+            for (List<LAStep> level : LAData) {
+                if (normDz > level.get(index).getValidRadius() || normDc > level.get(index).getValidRadiusC()) break;
 
-            if (index % 2 != 0) break;
-            length <<=1;
-            index >>=1;
+                step = level.get(index);
+
+                if (index % 2 != 0) break;
+                length <<=1;
+                index >>=1;
+            }
+
+            length = Math.min(length, refComplex.size() - i);
+            return new Pair<>(step, length);
+        }catch (IndexOutOfBoundsException ex){
+            return new Pair<>(null, 0);
         }
-
-        length = Math.min(length, refComplex.size() - i);
-        return new Pair<>(step, length);
     }
 
     record Pair<K,V>(K first, V second){}
