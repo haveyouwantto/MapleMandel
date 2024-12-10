@@ -6,7 +6,6 @@ import hywt.maplemandel.core.numtype.FloatExp;
 import hywt.maplemandel.core.numtype.FloatExpComplex;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -464,25 +463,25 @@ public class Mandelbrot {
     private List<FloatExpComplex> getReference(DeepComplex c) {
         List<FloatExpComplex> referencePoints = new ArrayList<>();
         int precision = -scale.scale() + 10;
-        DeepComplex z = new DeepComplex(0, 0).setPrecision(precision);
-        MathContext mc = new MathContext(precision);
+        DeepComplex Z = new DeepComplex(0, 0).setPrecision(precision).add(c);
 
-        for (int i = 0; i < this.maxIter; i++) {
-            BigDecimal re = z.getRe();
-            BigDecimal im = z.getIm();
-            BigDecimal x2 = re.multiply(re, mc);
-            BigDecimal y2 = im.multiply(im, mc);
+        FloatExpComplex z = Z.toFloatExp();
+        FloatExpComplex dzdc = new FloatExpComplex(1, 0);
+        referencePoints.add(new FloatExpComplex(0, 0));
+        referencePoints.add(z);
 
-            FloatExpComplex fl = z.toFloatExp();
-            if (fl.abs().compareTo(ESCAPE_RADIUS) > 0) break;
-            referencePoints.add(fl);
+        for (int i = 1; i < this.maxIter; i++) {
+            dzdc = z.mul(2).mul(dzdc).add(new FloatExpComplex(1, 0));
+            Z = Z.mul(Z).add(c);
+            z = Z.toFloatExp();
+            referencePoints.add(z);
+            if ((
+                    dzdc.norm().mul(2).mul(this.scale).compareTo(z.norm()) > 0
+            ) || z.abs2().compareTo(ESCAPE_RADIUS) > 0) break;
 
-            BigDecimal x = x2.subtract(y2, mc).add(c.getRe(), mc);
-            BigDecimal y = re.multiply(im, mc).multiply(BigDecimal.valueOf(2), mc).add(c.getIm(), mc);
-
-            z = new DeepComplex(x, y).setPrecision(precision);
             stats.refIter.incrementAndGet();
         }
+        System.out.println(referencePoints.size());
         return referencePoints;
     }
 
@@ -502,7 +501,7 @@ public class Mandelbrot {
                     double error = Math.abs((approx.getRe().div(v2.getRe()).abs().addMut(approx.getIm().div(v2.getIm()).abs()))
                             .subMut(new FloatExp(2)).doubleValue());
 //                    if(i==0)System.out.println(v2+" "+ approx+" "+error);
-                    if (error > 1e-5 || Z.add(v2).abs().doubleValue() > 4 || Double.isNaN(error)) {
+                    if (error > 1e-5 || Z.add(v2).abs2().doubleValue() > 4 || Double.isNaN(error)) {
                         coeff.undo();
                         coeff.setIterationCount(n - 1);
                         return coeff;
@@ -583,11 +582,11 @@ public class Mandelbrot {
             if (delta.getRe().scale() > -160 && delta.getIm().scale() > -160) {
                 return new Parcel<>(iter, delta);
             }
-            FloatExp len = val.abs();
+            FloatExp len = val.abs2();
             if (len.doubleValue() > 4) {
                 return new Parcel<>(iter, null);
             }  // 逃逸检测
-            if (len.compareTo(delta.abs()) < 0 || refIter == reference.size() - 1) { // 检测是否需要变基
+            if (len.compareTo(delta.abs2()) < 0 || refIter == reference.size() - 1) { // 检测是否需要变基
                 delta = val;
                 refIter = 0;
             }

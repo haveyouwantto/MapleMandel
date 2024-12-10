@@ -13,7 +13,7 @@ public class FloatExpComplex {
         this(new FloatExp(i), new FloatExp(j));
     }
 
-    public FloatExp abs() {
+    public FloatExp abs2() {
         // |z| = sqrt(re^2 + im^2)
         return re.mul(re).add(im.mul(im));
     }
@@ -87,6 +87,11 @@ public class FloatExpComplex {
                 re.toBigDecimal(),
                 im.toBigDecimal()
         );
+    }
+
+    public FloatExp norm() {
+        if (re.compareTo(im) > 0) return re.abs();
+        else return im.abs();
     }
 
     public FloatExp getRe() {
