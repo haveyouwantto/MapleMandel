@@ -249,15 +249,15 @@ public class MandelbrotApp extends JFrame {
         panel.repaint();
         MandelbrotStats stats = mandelbrot.getStats();
         double guessed = (double) stats.getGuessed().get() / stats.getTotalPixels();
-        double ref = (double) stats.getRefIter().get() / mandelbrot.getMaxIter();
+        int ref = stats.getRefIter().get();
         double approx = (double) stats.getApprox().get() / stats.getRefIter().get();
         double percent = (double) stats.getDrawn().get() / stats.getTotalPixels();
         long time = System.currentTimeMillis() - stats.getStartTime().get();
         Duration duration = Duration.ofMillis(time);
         label.setText(String.format(
-                "%.1f%%  Ref: %.1f%%  Approx: %.1f%%  Guessed: %.1f%%  Time: %s  Zoom: %s  It: %d  ",
+                "%.1f%%  Ref: %d  Approx: %.1f%%  Guessed: %.1f%%  Time: %s  Zoom: %s  It: %d  ",
                 percent * 100,
-                ref * 100,
+                ref,
                 approx * 100,
                 guessed * 100,
                 duration,
@@ -330,7 +330,7 @@ class DrawingPanel extends JPanel {
         };
 
         mandelbrot = new Mandelbrot(width, height);
-        mandelbrot.setMultiThreaded(false);
+        mandelbrot.setMultiThreaded(true);
         enabled = true;
 
         addMouseListener(new MouseAdapter() {

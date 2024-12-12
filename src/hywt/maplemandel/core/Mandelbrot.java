@@ -655,7 +655,7 @@ public class Mandelbrot {
     record Pair<K, V>(K key, V value) {
     }
 
-    Pair<BLAEntry, Integer> lookup(List<List<BLAEntry>> table, int i, int refLen, double normDz, double normDc) {
+    Pair<BLAEntry, Integer> lookup(List<List<BLAEntry>> table, int i, int refLen, double normDz) {
         if (i == 0 || i >= refLen || table.isEmpty()) {
             return new Pair<>(null, 0);
         }
@@ -692,9 +692,8 @@ public class Mandelbrot {
         int refIter = 0;
         while (iter < maxIter) {
             double dzNorm = Math.max(Math.abs(dzRe), Math.abs(dzIm));
-            double dcNorm = Math.max(Math.abs(dc.getRe()), Math.abs(dc.getIm()));
 
-            Pair<BLAEntry, Integer> result = lookup(table, refIter, ref.size(), dzNorm, dcNorm);
+            Pair<BLAEntry, Integer> result = lookup(table, refIter, ref.size(), dzNorm);
             BLAEntry first = result.key;
             int second = result.value;
 
