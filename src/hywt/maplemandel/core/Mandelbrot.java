@@ -201,7 +201,6 @@ public class Mandelbrot {
 
             if (refComplex.size() >= 8) {
                 this.blaTable = createBLATable(refComplex, this.scale.doubleValue());
-                System.out.println(blaTable);
             }
 
             flags.setReference(false);
@@ -493,7 +492,6 @@ public class Mandelbrot {
 
             stats.refIter.incrementAndGet();
         }
-        System.out.println(orbit);
         return orbit;
     }
 
@@ -643,6 +641,7 @@ public class Mandelbrot {
                 double newRadius = Math.min(bla1.radius, Math.max(0, (bla2.radius - bla1.B.norm() * scale) / bla1.A.norm()));
 
                 currentLevel.add(new BLAEntry(newA, newB, newRadius));
+                stats.approx.incrementAndGet();
             }
 
             if (currentLevel.size() <= 1) break;

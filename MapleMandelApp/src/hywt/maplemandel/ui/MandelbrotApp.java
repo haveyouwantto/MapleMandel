@@ -250,7 +250,7 @@ public class MandelbrotApp extends JFrame {
         MandelbrotStats stats = mandelbrot.getStats();
         double guessed = (double) stats.getGuessed().get() / stats.getTotalPixels();
         int ref = stats.getRefIter().get();
-        double approx = (double) stats.getApprox().get() / stats.getRefIter().get();
+        double approx = (double) stats.getApprox().get() / (stats.getRefIter().get());
         double percent = (double) stats.getDrawn().get() / stats.getTotalPixels();
         long time = System.currentTimeMillis() - stats.getStartTime().get();
         Duration duration = Duration.ofMillis(time);

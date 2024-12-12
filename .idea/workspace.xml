@@ -9,7 +9,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="add bla">
+    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="fix ref">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MapleMandelApp/src/hywt/maplemandel/ui/MandelbrotApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/MapleMandelApp/src/hywt/maplemandel/ui/MandelbrotApp.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/core/Mandelbrot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/core/Mandelbrot.java" afterDir="false" />
@@ -460,7 +460,15 @@
       <option name="project" value="LOCAL" />
       <updated>1733991540540</updated>
     </task>
-    <option name="localTasksCounter" value="46" />
+    <task id="LOCAL-00046" summary="fix ref">
+      <option name="closed" value="true" />
+      <created>1734001864405</created>
+      <option name="number" value="00046" />
+      <option name="presentableId" value="LOCAL-00046" />
+      <option name="project" value="LOCAL" />
+      <updated>1734001864405</updated>
+    </task>
+    <option name="localTasksCounter" value="47" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -475,7 +483,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="optimize mandel app" />
     <MESSAGE value="add reuse center" />
     <MESSAGE value="optimize LocationPanel" />
     <MESSAGE value="optimize reference calculation" />
@@ -500,6 +507,7 @@
     <MESSAGE value="use floatexp to compare" />
     <MESSAGE value="add bla (unsuccessful)" />
     <MESSAGE value="add bla" />
-    <option name="LAST_COMMIT_MESSAGE" value="add bla" />
+    <MESSAGE value="fix ref" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix ref" />
   </component>
 </project>
