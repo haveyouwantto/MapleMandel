@@ -147,13 +147,11 @@ public class MandelbrotApp extends JFrame {
             try {
                 LocationPanel locationPanel = new LocationPanel()
                         .setPos(panel.getMandelbrot().getCenter())
-                        .setScale(panel.getMandelbrot().getScale())
-                        .setIterations(panel.getMandelbrot().getMaxIter());
+                        .setScale(panel.getMandelbrot().getScale());
                 int result = JOptionPane.showConfirmDialog(null, locationPanel, "位置",
                         JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
                 if (result == JOptionPane.OK_OPTION) {
                     panel.getMandelbrot().gotoLocation(locationPanel.getPos(), locationPanel.getScale());
-                    panel.getMandelbrot().setMaxIter(locationPanel.getIterations());
                     panel.startDraw();
                 }
             } catch (Exception ex) {

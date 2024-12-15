@@ -11,7 +11,6 @@ public class LocationPanel extends JPanel {
     private ScrollTextArea reField;
     private ScrollTextArea imField;
     private JTextField magnField;
-    private JTextField iterField;
 
     public LocationPanel(){
         super();
@@ -27,8 +26,6 @@ public class LocationPanel extends JPanel {
 
         JLabel magnLabel = new JLabel("Magnification");
         magnField = new JTextField("5.070602e+30");
-        JLabel iterLabel = new JLabel("Iterations");
-        iterField = new JTextField("1024");
 
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -42,8 +39,8 @@ public class LocationPanel extends JPanel {
 
         innerPanel.add(magnLabel);
         innerPanel.add(magnField);
-        innerPanel.add(iterLabel);
-        innerPanel.add(iterField);
+//        innerPanel.add(iterLabel);
+//        innerPanel.add(iterField);
 
         add(panel, BorderLayout.CENTER);
         add(innerPanel, BorderLayout.SOUTH);
@@ -70,15 +67,6 @@ public class LocationPanel extends JPanel {
 
     public LocationPanel setScale(FloatExp scale){
         magnField.setText(new FloatExp(4).div(scale).toString());
-        return this;
-    }
-
-    public int getIterations(){
-        return Integer.parseInt(iterField.getText());
-    }
-
-    public LocationPanel setIterations(int it){
-        iterField.setText(String.valueOf(it));
         return this;
     }
 }

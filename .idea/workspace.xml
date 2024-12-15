@@ -9,8 +9,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="fix ref">
+    <list default="true" id="f0beecf8-1a7f-4d1d-baea-bd11bfcfee90" name="更改" comment="remove println">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MapleMandelApp/src/hywt/maplemandel/ui/LocationPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/MapleMandelApp/src/hywt/maplemandel/ui/LocationPanel.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MapleMandelApp/src/hywt/maplemandel/ui/MandelbrotApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/MapleMandelApp/src/hywt/maplemandel/ui/MandelbrotApp.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/hywt/maplemandel/core/Mandelbrot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hywt/maplemandel/core/Mandelbrot.java" afterDir="false" />
     </list>
@@ -468,7 +469,15 @@
       <option name="project" value="LOCAL" />
       <updated>1734001864405</updated>
     </task>
-    <option name="localTasksCounter" value="47" />
+    <task id="LOCAL-00047" summary="remove println">
+      <option name="closed" value="true" />
+      <created>1734003757011</created>
+      <option name="number" value="00047" />
+      <option name="presentableId" value="LOCAL-00047" />
+      <option name="project" value="LOCAL" />
+      <updated>1734003757011</updated>
+    </task>
+    <option name="localTasksCounter" value="48" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -483,7 +492,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="add reuse center" />
     <MESSAGE value="optimize LocationPanel" />
     <MESSAGE value="optimize reference calculation" />
     <MESSAGE value="add floatexp early exit" />
@@ -508,6 +516,7 @@
     <MESSAGE value="add bla (unsuccessful)" />
     <MESSAGE value="add bla" />
     <MESSAGE value="fix ref" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix ref" />
+    <MESSAGE value="remove println" />
+    <option name="LAST_COMMIT_MESSAGE" value="remove println" />
   </component>
 </project>

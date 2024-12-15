@@ -193,6 +193,7 @@ public class Mandelbrot {
         if (flags.isReference()) {
             stats.reset();
             reference = getReference(center);
+            this.maxIter = (reference.size() - 1) * 256;
 
             refComplex = new ArrayList<>();
             for (FloatExpComplex floatExp : reference) {
@@ -481,7 +482,7 @@ public class Mandelbrot {
         int precision = -scale.scale() + 10;
         DeepComplex Z = new DeepComplex(0, 0).setPrecision(precision);
 
-        for (int i = 1; i < this.maxIter; i++) {
+        while (true) {
             dzdc = z.mul(2).mul(dzdc).add(one);
             Z = Z.mul(Z).add(c);
 
@@ -616,7 +617,7 @@ public class Mandelbrot {
 
             Complex A = point.mul(2);
             Complex B = new Complex(1, 0);
-            double radius = Math.max(0, (point.norm() - B.norm() * scale) / (A.norm() + 1) * 0.001);
+            double radius = Math.max(0, (point.norm() - B.norm() * scale) / (A.norm() + 1) * 0x1.0p-24);
 
             lv1.add(new BLAEntry(A, B, radius));
         }
@@ -687,7 +688,7 @@ public class Mandelbrot {
     public Integer getPTBLA(Complex dc, List<Complex> ref, List<List<BLAEntry>> table, int maxIter, double bailout) {
         double dzRe = 0, dzIm = 0;
 
-        int iter = 0;
+        int iter = -1;
         int refIter = 0;
         while (iter < maxIter) {
             double dzNorm = Math.max(Math.abs(dzRe), Math.abs(dzIm));
